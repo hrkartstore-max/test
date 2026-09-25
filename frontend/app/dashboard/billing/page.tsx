@@ -105,7 +105,7 @@ export default function Billing(){
         </div>)}
       </div>
 
-      <div className="notice">Secure payments are processed by Cashfree. Your paid plan becomes active after Cashfree confirms the payment through the signed webhook.</div>
+      <div className="notice"><b>Plan access is enforced automatically.</b> Free, Starter and Pro limits are checked by the backend, so upgrades take effect across the store after payment confirmation.</div><div className="notice">Secure payments are processed by Cashfree. Your paid plan becomes active after Cashfree confirms the payment through the signed webhook.</div>
     </main>
   </>;
 }
