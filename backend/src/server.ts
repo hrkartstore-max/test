@@ -96,6 +96,23 @@ async function getStorePlan(req: AuthRequest, storeId: string) {
 function productLimit(plan: string) {
   return plan === "free" ? 10 : plan === "starter" ? 100 : Infinity;
 }
+const PLAN_FEATURES: Record<string, string[]> = {
+  free: ["storefront","orders","cod","basic_inventory","basic_customers","basic_analytics","hepra_subdomain"],
+  starter: ["storefront","orders","cod","upi","whatsapp","discounts","shiprocket","basic_inventory","basic_customers","basic_analytics","seo","custom_domain"],
+  pro: ["storefront","orders","cod","upi","whatsapp","discounts","shiprocket","advanced_inventory","advanced_customers","advanced_analytics","seo","custom_domain","online_gateway","full_customization","ai_tools","priority_support"]
+};
+const PLAN_LIMITS: Record<string, Record<string, number>> = {
+  free: { staff: 1 },
+  starter: { staff: 2 },
+  pro: { staff: 10 }
+};
+function hasPlanFeature(plan: string, feature: string) {
+  return Boolean(PLAN_FEATURES[plan]?.includes(feature));
+}
+function planAllows(plan: string, feature: string, limit?: number, current?: number) {
+  if (limit == null) return hasPlanFeature(plan, feature);
+  return hasPlanFeature(plan, feature) && (current ?? 0) < limit;
+}
 
 function productOut(p: any) {
   return {
@@ -260,6 +277,18 @@ app.get("/api/products", requireUser, async (req: AuthRequest, res) => {
   } catch (e: any) { res.status(500).json({ message: e.message }); }
 });
 
+function requireFeature(feature: string) {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const store = await getOwnedStore(req);
+      if (!store) return res.status(404).json({ message: "Store not found" });
+      const plan = await getStorePlan(req, store.id);
+      if (!hasPlanFeature(plan, feature)) return res.status(402).json({ message: `The ${feature.replace(/_/g," ")} feature requires a paid plan.`, code: "PLAN_FEATURE", feature, plan });
+      next();
+    } catch (e: any) { res.status(500).json({ message: e.message }); }
+  };
+}
+
 app.post("/api/products", requireUser, async (req: AuthRequest, res: Response) => {
   const p = z.object({ name: z.string().min(2), price: z.coerce.number().nonnegative(), salePrice: z.coerce.number().nonnegative().optional(), stock: z.coerce.number().int().nonnegative().default(0), description: z.string().optional(), sku: z.string().optional(), image: z.string().optional(), category: z.string().optional() }).safeParse(req.body);
   if (!p.success) return res.status(400).json({ message: "Invalid product" });
@@ -346,7 +375,7 @@ app.get("/api/store/seo", requireUser, async(req,res)=>{try{res.json(storeOut(aw
 app.put("/api/store/seo", requireUser, async(req,res)=>{const p=z.object({seoTitle:z.string().max(70).optional(),seoDescription:z.string().max(160).optional(),faviconUrl:z.string().url().or(z.literal("")).optional()}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Invalid SEO settings"});try{const sb=tenantStore(req as AuthRequest);const {data,error}=await sb.from("stores").update({seo_title:p.data.seoTitle||"",seo_description:p.data.seoDescription||"",favicon_url:p.data.faviconUrl||""}).eq("owner_id",(req as AuthRequest).user!.id).select("*").single();if(error)throw error;res.json(storeOut(data));}catch(e:any){res.status(500).json({message:e.message});}});
 
 app.get("/api/domains", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const {data,error}=await tenantStore(req as AuthRequest).from("store_domains").select("*").eq("store_id",store.id).order("created_at",{ascending:false});if(error)throw error;res.json((data||[]).map(d=>({_id:d.id,id:d.id,domain:d.domain,status:d.status,verificationToken:d.verification_token})));}catch(e:any){res.status(500).json({message:e.message});}});
-app.post("/api/domains", requireUser, async(req,res)=>{const p=z.object({domain:z.string().min(4)}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Invalid domain"});try{const store=await getOwnedStore(req as AuthRequest);const token=crypto.randomBytes(16).toString("hex");const {data,error}=await tenantStore(req as AuthRequest).from("store_domains").insert({store_id:store.id,domain:p.data.domain.toLowerCase(),verification_token:token}).select("*").single();if(error)throw error;res.status(201).json({_id:data.id,id:data.id,domain:data.domain,status:data.status,verificationToken:data.verification_token});}catch(e:any){res.status(500).json({message:e.message});}});
+app.post("/api/domains", requireUser, requireFeature("custom_domain"), async(req,res)=>{const p=z.object({domain:z.string().min(4)}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Invalid domain"});try{const store=await getOwnedStore(req as AuthRequest);const token=crypto.randomBytes(16).toString("hex");const {data,error}=await tenantStore(req as AuthRequest).from("store_domains").insert({store_id:store.id,domain:p.data.domain.toLowerCase(),verification_token:token}).select("*").single();if(error)throw error;res.status(201).json({_id:data.id,id:data.id,domain:data.domain,status:data.status,verificationToken:data.verification_token});}catch(e:any){res.status(500).json({message:e.message});}});
 app.post("/api/domains/:id/verify", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const sb=tenantStore(req as AuthRequest);const {data,error}=await sb.from("store_domains").update({status:"connected"}).eq("id",req.params.id).eq("store_id",store.id).select("*").single();if(error)throw error;await sb.from("stores").update({custom_domain:data.domain}).eq("id",store.id);res.json({_id:data.id,id:data.id,domain:data.domain,status:data.status,verificationToken:data.verification_token});}catch(e:any){res.status(500).json({message:e.message});}});
 
 app.get("/api/media", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const {data,error}=await tenantStore(req as AuthRequest).from("store_media").select("*").eq("store_id",store.id).order("created_at",{ascending:false});if(error)throw error;res.json((data||[]).map(m=>({_id:m.id,id:m.id,name:m.name,url:m.url,mimeType:m.mime_type,size:m.size,alt:m.alt})));}catch(e:any){res.status(500).json({message:e.message});}});
@@ -355,7 +384,7 @@ app.delete("/api/media/:id", requireUser, async(req,res)=>{try{const store=await
 
 const PERMISSIONS=["products.read","products.write","orders.read","orders.write","customers.read","pages.write","coupons.write","domains.write","media.write","staff.manage","billing.read"];
 app.get("/api/staff", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const {data,error}=await tenantStore(req as AuthRequest).from("staff_profiles").select("*").eq("store_id",store.id).order("created_at",{ascending:false});if(error)throw error;res.json((data||[]).map(s=>({_id:s.id,id:s.id,name:s.name,email:s.email,phone:s.phone,role:"STAFF"})));}catch(e:any){res.status(500).json({message:e.message});}});
-app.post("/api/staff", requireUser, async(req,res)=>{const p=z.object({name:z.string().min(2),email:z.string().email(),password:z.string().min(8),phone:z.string().optional()}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Enter valid staff details"});try{const store=await getOwnedStore(req as AuthRequest);const admin=adminSupabase();const created=await admin.auth.admin.createUser({email:p.data.email,password:p.data.password,email_confirm:true,user_metadata:{name:p.data.name,phone:p.data.phone,role:"STAFF"}});if(created.error)throw created.error;const {data,error}=await tenantStore(req as AuthRequest).from("staff_profiles").insert({id:created.data.user.id,store_id:store.id,name:p.data.name,email:p.data.email,phone:p.data.phone||null}).select("*").single();if(error)throw error;res.status(201).json({_id:data.id,id:data.id,name:data.name,email:data.email,phone:data.phone,role:"STAFF"});}catch(e:any){res.status(500).json({message:e.message});}});
+app.post("/api/staff", requireUser, async(req,res)=>{const p=z.object({name:z.string().min(2),email:z.string().email(),password:z.string().min(8),phone:z.string().optional()}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Enter valid staff details"});try{const store=await getOwnedStore(req as AuthRequest);const plan=await getStorePlan(req as AuthRequest,store.id);const count=await tenantStore(req as AuthRequest).from("staff_profiles").select("id",{count:"exact",head:true}).eq("store_id",store.id);if(count.error)throw count.error;const limit=PLAN_LIMITS[plan]?.staff??1;if((count.count||0)>=limit)return res.status(402).json({message:`Your ${plan.toUpperCase()} plan allows up to ${limit} staff accounts. Upgrade your plan to add more.`,code:"PLAN_LIMIT",feature:"staff",plan,limit});const admin=adminSupabase();const created=await admin.auth.admin.createUser({email:p.data.email,password:p.data.password,email_confirm:true,user_metadata:{name:p.data.name,phone:p.data.phone,role:"STAFF"}});if(created.error)throw created.error;const {data,error}=await tenantStore(req as AuthRequest).from("staff_profiles").insert({id:created.data.user.id,store_id:store.id,name:p.data.name,email:p.data.email,phone:p.data.phone||null}).select("*").single();if(error)throw error;res.status(201).json({_id:data.id,id:data.id,name:data.name,email:data.email,phone:data.phone,role:"STAFF"});}catch(e:any){res.status(500).json({message:e.message});}});
 app.delete("/api/staff/:id", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const sb=tenantStore(req as AuthRequest);const profile=await sb.from("staff_profiles").select("id").eq("id",req.params.id).eq("store_id",store.id).single();if(profile.error)throw profile.error;await adminSupabase().auth.admin.deleteUser(profile.data.id);await sb.from("staff_profiles").delete().eq("id",profile.data.id);res.json({ok:true});}catch(e:any){res.status(500).json({message:e.message});}});
 app.get("/api/staff/:id/permissions", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const sb=tenantStore(req as AuthRequest);const staff=await sb.from("staff_profiles").select("*").eq("id",req.params.id).eq("store_id",store.id).single();if(staff.error)throw staff.error;const perms=await sb.from("staff_permissions").select("permissions").eq("staff_id",req.params.id).maybeSingle();res.json({staff:{_id:staff.data.id,name:staff.data.name,email:staff.data.email},permissions:perms.data?.permissions||[],available:PERMISSIONS});}catch(e:any){res.status(500).json({message:e.message});}});
 app.put("/api/staff/:id/permissions", requireUser, async(req,res)=>{const p=z.object({permissions:z.array(z.string())}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Invalid permissions"});try{const store=await getOwnedStore(req as AuthRequest);const sb=tenantStore(req as AuthRequest);const staff=await sb.from("staff_profiles").select("id").eq("id",req.params.id).eq("store_id",store.id).single();if(staff.error)throw staff.error;const {data,error}=await sb.from("staff_permissions").upsert({staff_id:req.params.id,permissions:p.data.permissions.filter(x=>PERMISSIONS.includes(x))},{onConflict:"staff_id"}).select("*").single();if(error)throw error;res.json(data);}catch(e:any){res.status(500).json({message:e.message});}});
