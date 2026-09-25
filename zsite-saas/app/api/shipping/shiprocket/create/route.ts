@@ -30,7 +30,7 @@ export async function POST(req:NextRequest){
       billing_city:order.shipping_city||'',billing_state:order.shipping_state||'',billing_country:'India',billing_pincode:order.shipping_pincode,
       billing_phone:order.customer_phone,shipping_is_billing:true,shipping_customer_name:first,shipping_last_name:last,
       shipping_address:order.customer_address||'Address',shipping_city:order.shipping_city||'',shipping_state:order.shipping_state||'',shipping_country:'India',shipping_pincode:order.shipping_pincode,
-      shipping_phone:order.customer_phone,payment_method:order.payment_status==='paid'?'PREPAID':'COD',sub_total:Number(order.total),
+      shipping_phone:order.customer_phone,payment_method:order.payment_status==='paid'?'PREPAID':'COD',sub_total:Number(order.subtotal)+Number(order.shipping_fee||0)+Number(order.cod_fee||0),
       order_items:(order.order_items||[]).map((x:any)=>({name:x.item_name,sku:String(x.item_id),units:Number(x.quantity),selling_price:Number(x.unit_price),discount:0})),
       length:Number(store.default_package_length||15),breadth:Number(store.default_package_breadth||10),height:Number(store.default_package_height||5),weight:Number(store.default_package_weight||0.5)
     };
@@ -39,7 +39,7 @@ export async function POST(req:NextRequest){
     if(!create.ok)return NextResponse.json({error:'Shiprocket order creation failed',details:created},{status:502});
     let awb:any=null;
     if(created.shipment_id){
-      const awbRes=await fetch('https://apiv2.shiprocket.in/v1/external/courier/assign/awb',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${loginData.token}`},body:JSON.stringify({shipment_id:created.shipment_id})});
+      const awbRes=await fetch('https://apiv2.shiprocket.in/v1/external/courier/assign/awb',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${loginData.token}`},body:JSON.stringify({shipment_id:created.shipment_id,...(order.courier_company_id?{courier_id:Number(order.courier_company_id)}:{})})});
       awb=await awbRes.json();
     }
     const awbCode=awb?.response?.data?.awb_code||awb?.awb_code||null;const courier=awb?.response?.data?.courier_name||awb?.courier_name||null;
