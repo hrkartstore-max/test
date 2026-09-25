@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useSearchParams } from "next/navigation";
 import { api } from "../../../lib/api";
 
 const plans = [
@@ -13,10 +14,12 @@ const plans = [
 declare global {
   interface Window {
     Razorpay?: any;
+    Cashfree?: any;
   }
 }
 
 export default function Billing(){
+  const searchParams=useSearchParams();
   const [sub,setSub]=useState<any>(null);
   const [busy,setBusy]=useState("");
   const [error,setError]=useState("");
@@ -32,55 +35,23 @@ export default function Billing(){
     setBusy(planId);
     setError("");
     try{
-      const cfg=await api("/api/payments/config");
-
-      if(cfg.provider==="razorpay"){
-        const r=await api("/api/payments/razorpay/subscription-order",{
-          method:"POST",
-          body:JSON.stringify({planId,billingCycle:"monthly"})
-        });
-
-        if(!window.Razorpay) throw new Error("Razorpay Checkout has not loaded yet. Please wait a moment and try again.");
-
-        const checkout=new window.Razorpay({
-          key:r.keyId,
-          order_id:r.orderId,
-          amount:r.amount,
-          currency:r.currency,
-          name:"HEPRA",
-          description:`HEPRA ${planId} subscription`,
-          theme:{color:"#171717"},
-          handler:async(response:any)=>{
-            try{
-              await api("/api/payments/razorpay/verify",{
-                method:"POST",
-                body:JSON.stringify({
-                  paymentId:response.razorpay_payment_id,
-                  orderId:response.razorpay_order_id,
-                  signature:response.razorpay_signature
-                })
-              });
-              await load();
-            }catch(e:any){ setError(e.message); }
-            finally{ setBusy(""); }
-          },
-          modal:{ondismiss:()=>setBusy("")}
-        });
-
-        checkout.open();
-        return;
-      }
-
-      await api("/api/subscription/checkout",{
+      const r=await api("/api/subscription/checkout",{
         method:"POST",
         body:JSON.stringify({planId,billingCycle:"monthly"})
       });
+      if(r.mode==="free"){
+        await load();
+        return;
+      }
+      if(r.mode==="cashfree"){
+        if(!window.Cashfree) throw new Error("Cashfree Checkout has not loaded yet. Please wait a moment and try again.");
+        const cashfree=window.Cashfree({mode:process.env.NEXT_PUBLIC_CASHFREE_MODE==="production"?"production":"sandbox"});
+        await cashfree.checkout({paymentSessionId:r.paymentSessionId,redirectTarget:"_self"});
+        return;
+      }
       await load();
-    }catch(e:any){
-      setError(e.message);
-    }finally{
-      if(!window.Razorpay || busy!==planId) setBusy("");
-    }
+    }catch(e:any){ setError(e.message||"Unable to start payment."); }
+    finally{ setBusy(""); }
   }
 
   async function cancel(){
@@ -92,7 +63,8 @@ export default function Billing(){
   }
 
   return <>
-    <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
+    <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="afterInteractive" />
+    {searchParams.get("payment")==="processing"&&<div className="notice">Payment submitted. We are confirming your Cashfree payment. Refresh this page after a few seconds if the plan has not updated yet.</div>}
     <main className="dashboard-content">
       <div className="panel-head">
         <div>
@@ -133,10 +105,7 @@ export default function Billing(){
         </div>)}
       </div>
 
-      <div className="notice">
-        If Razorpay keys are configured on the backend, this button opens Razorpay Checkout.
-        Without keys, HEPRA stays in local development mode.
-      </div>
+      <div className="notice">Secure payments are processed by Cashfree. Your paid plan becomes active after Cashfree confirms the payment through the signed webhook.</div>
     </main>
   </>;
 }
