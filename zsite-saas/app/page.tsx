@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 type Item={id:string;name:string;description:string|null;price:number;compare_at_price:number|null;stock:number;category_id:string|null;active:boolean;image_url:string|null};
 type Cat={id:string;name:string;sort_order:number;visible:boolean};
 
-const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
+const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Customers',Store],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
 
 export default function Home(){
   const [tab,setTab]=useState('Dashboard');
@@ -99,7 +99,7 @@ export default function Home(){
       <section className="content">
         {error&&<div className="error">{error}<button onClick={()=>setError('')}>×</button></div>}
         <div className="setup"><h2>Finish setting up your store 🚀</h2><p>{items.length>0?'Your catalog is live — keep building your store.':'Add your first product to start selling.'}</p><div className="setupgrid"><div className="setupitem"><b>Store</b><span>{store?.name} · /{store?.slug}</span></div><div className="setupitem"><b>Products</b><span>{items.length} items connected to Supabase</span></div><div className="setupitem"><b>Categories</b><span>{cats.length} storefront categories</span></div><div className="setupitem"><b>Payments</b><span>Configure UPI from Payments</span></div></div></div>
-        {tab==='Dashboard'&&<Dashboard store={store} items={items} cats={cats}/>}\n        {tab==='Orders'&&<Orders store={store}/>}
+        {tab==='Dashboard'&&<Dashboard store={store} items={items} cats={cats}/>}\n        {tab==='Orders'&&<Orders store={store}/>}\n        {tab==='Customers'&&<Customers store={store}/>}
         {tab==='Items'&&<Items items={filtered} cats={cats} search={search} setSearch={setSearch} showAdd={showAdd} setShowAdd={setShowAdd} store={store} setItems={setItems} setError={setError} newName={newName} setNewName={setNewName} newPrice={newPrice} setNewPrice={setNewPrice} newStock={newStock} setNewStock={setNewStock} newCat={newCat} setNewCat={setNewCat} addItem={addItem} saving={saving}/>}
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
@@ -468,5 +468,33 @@ function Reports({store,items}:{store:any;items:Item[]}){
       <div className="panel"><div className="panelhead">ORDER MIX</div><div className="mix-row"><span>Paid</span><b>{paid}</b></div><div className="mix-row"><span>COD</span><b>{cod}</b></div><div className="mix-row"><span>Pending</span><b>{filtered.filter(o=>String(o.payment_status).toLowerCase()!=='paid').length}</b></div><div className="mix-row"><span>Cancelled</span><b>{filtered.filter(o=>o.status==='cancelled').length}</b></div></div>
     </div>
     <div className="panel"><div className="panelhead">TOP PRODUCTS <span className="muted">{items.length} catalog items</span></div>{items.length?items.slice(0,8).map((i,idx)=><div className="row" key={i.id}><span className="rank">{String(idx+1).padStart(2,'0')}</span><div className="grow"><b>{i.name}</b><div className="muted">{i.stock} in stock</div></div><span>₹{Number(i.price||0).toLocaleString('en-IN')}</span><span className="pill">{i.active?'LIVE':'DRAFT'}</span></div>):<div className="empty">Add products to start tracking your catalog.</div>}</div>
+  </div>
+}
+
+function Customers({store}:{store:any}){
+  const [orders,setOrders]=useState<any[]>([]);
+  const [search,setSearch]=useState('');
+  const [selected,setSelected]=useState<any>(null);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{let alive=true;async function load(){if(!store?.id)return;setLoading(true);const {data}=await supabase().from('orders').select('id,customer_name,customer_phone,customer_email,customer_address,shipping_city,shipping_state,shipping_pincode,total,status,created_at,payment_status').eq('store_id',store.id).order('created_at',{ascending:false}).limit(2000);if(alive)setOrders(data||[]);setLoading(false)}load();return()=>{alive=false}},[store?.id]);
+  const customers=useMemo(()=>{
+    const map=new Map<string,any>();
+    for(const o of orders){
+      const key=(String(o.customer_phone||'').trim()||String(o.customer_email||'').trim()||String(o.customer_name||'customer').trim()).toLowerCase();
+      const existing=map.get(key);
+      if(existing){existing.orders+=1;existing.spend+=Number(o.total||0);if(new Date(o.created_at)>new Date(existing.last_order))existing.last_order=o.created_at;existing.orderRows.push(o);}
+      else map.set(key,{key,name:o.customer_name||'Customer',phone:o.customer_phone||'—',email:o.customer_email||'—',address:o.customer_address||'',city:o.shipping_city||'',state:o.shipping_state||'',pincode:o.shipping_pincode||'',orders:1,spend:Number(o.total||0),last_order:o.created_at,orderRows:[o]});
+    }
+    return [...map.values()].sort((a,b)=>b.spend-a.spend);
+  },[orders]);
+  const shown=customers.filter(c=>(c.name+' '+c.phone+' '+c.email).toLowerCase().includes(search.toLowerCase()));
+  const totalSpend=customers.reduce((s,c)=>s+c.spend,0);
+  return <div className="customers">
+    <div className="pagehead"><div><h1>Customers</h1><p>{customers.length} customers · built from your order history.</p></div><div className="actions"><button className="btn" onClick={()=>location.reload()}>↻ Refresh</button></div></div>
+    <div className="cards"><div className="stat"><small>TOTAL CUSTOMERS</small><strong>{customers.length}</strong></div><div className="stat"><small>REPEAT CUSTOMERS</small><strong>{customers.filter(c=>c.orders>1).length}</strong></div><div className="stat"><small>CUSTOMER SALES</small><strong>₹{totalSpend.toLocaleString('en-IN')}</strong></div><div className="stat"><small>AVG CUSTOMER VALUE</small><strong>₹{customers.length?Math.round(totalSpend/customers.length).toLocaleString('en-IN'):'0'}</strong></div></div>
+    <div className="panel"><div className="toolbar"><Search size={14}/><input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, phone or email..."/></div>
+      {loading?<div className="empty">Loading customers…</div>:shown.length?shown.map(c=><div className="row customer-row" key={c.key} onClick={()=>setSelected(c)}><div className="customer-avatar">{String(c.name).slice(0,1).toUpperCase()}</div><div className="grow"><b>{c.name}</b><div className="muted">{c.phone} · {c.email}</div></div><span><b>{c.orders}</b> orders</span><span>₹{c.spend.toLocaleString('en-IN')}</span><span className="pill">{c.orders>1?'REPEAT':'NEW'}</span></div>):<div className="empty"><div className="big">◎</div>No customers found.</div>}
+    </div>
+    {selected&&<div className="overlay"><section className="checkout-box customer-drawer"><div className="drawer-head"><h2>{selected.name}</h2><button onClick={()=>setSelected(null)}>×</button></div><div className="customer-profile"><div className="customer-avatar large">{String(selected.name).slice(0,1).toUpperCase()}</div><div><b>{selected.phone}</b><div className="muted">{selected.email}</div></div></div><div className="customer-summary"><div><small>ORDERS</small><b>{selected.orders}</b></div><div><small>SPEND</small><b>₹{selected.spend.toLocaleString('en-IN')}</b></div><div><small>LAST ORDER</small><b>{new Date(selected.last_order).toLocaleDateString('en-IN')}</b></div></div><div className="customer-address"><small>DELIVERY ADDRESS</small><p>{selected.address||'—'}<br/>{selected.city} {selected.state} {selected.pincode}</p></div><div className="panel"><div className="panelhead">ORDER HISTORY</div>{selected.orderRows.map((o:any)=><div className="row" key={o.id}><div className="grow"><b>{new Date(o.created_at).toLocaleDateString('en-IN')}</b><div className="muted">{o.payment_status||'pending'}</div></div><span>₹{Number(o.total||0).toLocaleString('en-IN')}</span><span className="pill">{o.status}</span></div>)}</div><button className="btn primary" style={{marginTop:10}} onClick={()=>setSelected(null)}>Close</button></section></div>}
   </div>
 }
