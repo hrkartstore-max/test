@@ -186,6 +186,34 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-faq">
+        <div className="ref-container">
+          <div className="ref-faq-grid">
+            <div>
+              <div className="ref-kicker">FAQ</div>
+              <h2>Questions.<br/><span>Answered.</span></h2>
+              <p>Everything you need to know before launching your HEPRA store.</p>
+              <Link href="/register" className="ref-orange-btn">Start free <ArrowRight size={16}/></Link>
+            </div>
+            <div className="ref-faq-list">
+              {[
+                ["Can I start for free?","Yes. HEPRA has a FREE plan so you can create your store and start with the basics before upgrading."],
+                ["Can I connect my own domain?","Yes. Custom domain support is available on paid plans."],
+                ["Can customers pay with UPI?","Yes. UPI support is available on paid plans, alongside COD."],
+                ["Can I take orders through WhatsApp?","Yes. HEPRA includes WhatsApp ordering features for merchants."],
+                ["Can I use Shiprocket?","Yes. Shiprocket support is included on paid plans."],
+                ["Do I need coding knowledge?","No. HEPRA is designed so merchants can build and manage their storefront without coding."]
+              ].map(([q,a]) => (
+                <details className="ref-faq-item" key={q}>
+                  <summary><span>{q}</span><b>+</b></summary>
+                  <p>{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="ref-section ref-features">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">THE TOOLKIT</div><h2>Everything your<br/><span>business needs.</span></h2></div><p>One simple platform for your storefront, selling tools and daily operations.</p></div>
