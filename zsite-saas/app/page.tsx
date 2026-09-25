@@ -1,23 +1,118 @@
 'use client';
-import {useMemo,useState} from 'react';
-import {ShoppingCart,Package,Tags,Percent,CreditCard,BarChart3,Store,Settings,Plus,Search,Trash2,Image as ImageIcon} from 'lucide-react';
-type Item={id:number;name:string;price:number;stock:number;category:string;active:boolean};
-type Cat={id:number;name:string;sort:number;visible:boolean};
-const seedCats:Cat[]=[{id:1,name:'Men',sort:0,visible:true},{id:2,name:'Women',sort:10,visible:true},{id:3,name:'Kids',sort:20,visible:true},{id:4,name:'Footwear',sort:30,visible:true},{id:5,name:'Accessories',sort:40,visible:true}];
-const seedItems:Item[]=[{id:1,name:'Classic Oversized T-Shirt',price:699,stock:24,category:'Women',active:true},{id:2,name:'Everyday Hoodie',price:1299,stock:12,category:'Men',active:true},{id:3,name:'Kids Cotton Set',price:899,stock:8,category:'Kids',active:true}];
+
+import { useEffect, useMemo, useState } from 'react';
+import { ShoppingCart, Package, Tags, Percent, CreditCard, BarChart3, Store, Settings, Plus, Search, Trash2, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+type Item={id:string;name:string;price:number;stock:number;category_id:string|null;active:boolean};
+type Cat={id:string;name:string;sort_order:number;visible:boolean};
+
 const nav=[['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
-export default function Home(){const [tab,setTab]=useState('Orders');const [items,setItems]=useState(seedItems);const [cats,setCats]=useState(seedCats);const [search,setSearch]=useState('');const [discountMode,setDiscountMode]=useState('Offers tab');const [showAdd,setShowAdd]=useState(false);const [newName,setNewName]=useState('');const [newPrice,setNewPrice]=useState('');const [newCat,setNewCat]=useState('Women');
-const filtered=useMemo(()=>items.filter(i=>i.name.toLowerCase().includes(search.toLowerCase())),[items,search]);
-const addItem=()=>{if(!newName||!newPrice)return;setItems(v=>[...v,{id:Date.now(),name:newName,price:Number(newPrice),stock:10,category:newCat,active:true}]);setNewName('');setNewPrice('');setShowAdd(false)};
-return <div className="app"><aside className="sidebar"><div className="brand"><div className="brandrow"><div className="logo">H</div><div className="brandtext"><div>HEPRA</div><div className="muted">Store Builder</div></div></div></div><div className="nav">{nav.map(([label,Icon])=><button key={label} className={tab===label?'active':''} onClick={()=>setTab(label)}><Icon size={14}/><span>{label}{label.startsWith('z')&&<em style={{fontSize:8,marginLeft:5,color:'#5146e5'}}>NEW</em>}</span></button>)}</div><div className="footer"><div className="live">● Taking orders</div><button className="nav" style={{border:0,background:'transparent',padding:0}}><Settings size={13}/><span className="hide-mobile">Store settings</span></button></div></aside><main className="main"><div className="top"><span>⌂ / {tab}</span><span>My stores　↗</span></div><section className="content"><div className="setup"><h2>Finish setting up your store 🚀</h2><p>0 of 4 done — you're almost ready to sell.</p><div className="setupgrid"><div className="setupitem"><b>Add your logo</b><span>Make your store instantly recognisable →</span></div><div className="setupitem"><b>Add your first product</b><span>Customers can't buy an empty store →</span></div><div className="setupitem"><b>Choose your look</b><span>Pick a theme & colours that fit your brand →</span></div><div className="setupitem"><b>Share your store</b><span>Get your link & QR in front of customers →</span></div></div></div>
-{tab==='Orders'&&<Orders/>}{tab==='Items'&&<><div className="pagehead"><div><h1>Items</h1><p>{items.length} total · {filtered.length} shown</p></div><div className="actions"><button className="btn">↥ Export</button><button className="btn">↓ Bulk import</button><button className="btn">Edit prices</button><button className="btn primary" onClick={()=>setShowAdd(true)}><Plus size={12}/> New item</button></div></div><div className="panel"><div className="toolbar"><Search size={14} color="#8a8c99"/><input className="input" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search items by name..."/></div>{filtered.length?filtered.map(i=><div className="row" key={i.id}><div className="grow"><b>{i.name}</b><div className="muted">{i.category} · {i.stock} in stock</div></div><span>₹{i.price.toLocaleString('en-IN')}</span><span className="pill">{i.active?'Active':'Draft'}</span></div>):<div className="empty"><div className="big">▱</div>No items yet</div>}</div>{showAdd&&<div className="panel"><div className="panelhead">Add item <button className="btn" onClick={()=>setShowAdd(false)}>Close</button></div><div className="formgrid"><div className="field"><label>Item name</label><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. Premium Hoodie"/></div><div className="field"><label>Price (₹)</label><input value={newPrice} onChange={e=>setNewPrice(e.target.value)} placeholder="999" inputMode="numeric"/></div><div className="field"><label>Category</label><select value={newCat} onChange={e=>setNewCat(e.target.value)}>{cats.map(c=><option key={c.id}>{c.name}</option>)}</select></div><div className="field"><label>Image</label><button className="btn" style={{width:'100%'}}><ImageIcon size={12}/> Choose image</button></div></div><div style={{padding:'0 13px 13px'}}><button className="btn primary" onClick={addItem}>Save item</button></div></div>}</>}
-{tab==='Categories'&&<Categories cats={cats} setCats={setCats}/>}
-{tab==='Discounts'&&<Discounts mode={discountMode} setMode={setDiscountMode}/>}
-{tab==='Payments'&&<Payments/>}
-{['Reports','zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
-</section><div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div></main></div>}
-function Orders(){return <><div className="pagehead"><div><h1>Orders</h1><p>0 total · 0 open</p></div><div className="actions"><button className="btn">🔊 Sound on</button><button className="btn">▷ Test</button></div></div><div className="cards">{[['TODAY’S ORDERS','0'],['TODAY’S REVENUE','₹0'],['OPEN QUEUE','0'],['AVG TICKET (7D)','₹0']].map(x=><div className="stat" key={x[0]}><small>{x[0]}</small><strong>{x[1]}</strong></div>)}</div><div className="panel"><div className="toolbar"><span className="pill">Open 0</span><span className="pill">New 0</span><span className="pill">Confirmed 0</span><span className="pill">Done 0</span><span className="pill">Cancelled 0</span></div><div className="empty"><div className="big">🛒</div><b>No orders here yet</b><br/>Customer orders from your storefront will show up here.<br/>Try another filter, or share your store link.</div></div></>}
-function Categories({cats,setCats}:{cats:Cat[];setCats:React.Dispatch<React.SetStateAction<Cat[]>>}){const [name,setName]=useState('');return <><div className="pagehead"><div><h1>Categories</h1><p>Organize items into sections shown on your storefront.</p></div></div><div className="panel">{cats.map(c=><div className="row" key={c.id}><div className="grow"><b>{c.name}</b></div><input style={{width:50,border:'1px solid #e0e1e8',borderRadius:6,padding:6,fontSize:10}} value={c.sort} onChange={e=>setCats(v=>v.map(x=>x.id===c.id?{...x,sort:Number(e.target.value)}:x))}/><span>SEO</span><label style={{fontSize:9}}><input type="checkbox" checked={c.visible} onChange={e=>setCats(v=>v.map(x=>x.id===c.id?{...x,visible:e.target.checked}:x))}/> Visible</label><Trash2 size={13} color="#e05252"/></div>)}<div style={{padding:13}}><b style={{fontSize:11}}>Add category</b><div style={{display:'flex',gap:7,marginTop:7}}><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Sarees"/><button className="btn primary" onClick={()=>{if(name)setCats(v=>[...v,{id:Date.now(),name,sort:v.length*10,visible:true}]);setName('')}}>Add category</button></div></div></div></>}
-function Discounts({mode,setMode}:{mode:string;setMode:(v:string)=>void}){return <><div className="pagehead"><div><h1>Discounts</h1><p>Coupon codes, automatic offers, and how offers show on your storefront.</p></div></div><div className="panel">{['Offers tab','Top carousel','Both','Off'].map(x=><label key={x} className="row"><input type="radio" checked={mode===x} onChange={()=>setMode(x)}/><div className="grow"><b>{x}</b><div className="muted">{x==='Offers tab'?'Pinned “Offers” entry in the category strip · minimalist, premium feel':x==='Top carousel'?'Edge-to-edge horizontal scroller above the categories. Bigger visual punch.':x==='Both'?'Carousel and tab. For festival pushes & big-bang sales.':'No dedicated showcase — discounts only show inline on item cards.'}</div></div></label>)}<div style={{padding:13,textAlign:'right'}}><button className="btn primary">Save</button></div></div></>}
-function Payments(){return <><div className="pagehead"><div><h1>Payments</h1><p>Take payment by UPI / QR — customers scan and pay you directly.</p></div></div><div className="panel"><div className="panelhead">UPI / QR code <span className="muted">No gateway · no commission</span></div><div className="formgrid"><div className="field"><label>UPI ID</label><input placeholder="yourname@upi"/></div><div className="field"><label>Merchant name</label><input placeholder="My Store"/></div><div className="field" style={{gridColumn:'1/-1'}}><label>UPI QR image</label><input placeholder="...or paste image URL"/></div><button className="btn primary">📷 Take photo</button><button className="btn">🖼 Choose image</button></div><div style={{padding:'0 13px 13px',textAlign:'right'}}><button className="btn primary">Save UPI details</button></div></div></>}
-function Coming({title}:{title:string}){return <div className="panel"><div className="empty"><div className="big">✨</div><b>{title}</b><br/>Module scaffold is ready. Connect the Supabase data layer to activate it.</div></div>}
+
+export default function Home(){
+  const [tab,setTab]=useState('Orders');
+  const [items,setItems]=useState<Item[]>([]);
+  const [cats,setCats]=useState<Cat[]>([]);
+  const [search,setSearch]=useState('');
+  const [showAdd,setShowAdd]=useState(false);
+  const [newName,setNewName]=useState('');
+  const [newPrice,setNewPrice]=useState('');
+  const [newStock,setNewStock]=useState('10');
+  const [newCat,setNewCat]=useState('');
+  const [store,setStore]=useState<any>(null);
+  const [user,setUser]=useState<any>(null);
+  const [loading,setLoading]=useState(true);
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState('');
+
+  useEffect(()=>{load();},[]);
+
+  async function load(){
+    setLoading(true); setError('');
+    const client=supabase();
+    const {data:{user}}=await client.auth.getUser();
+    setUser(user);
+    if(!user){setLoading(false);return;}
+    let {data:st,error:storeError}=await client.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1).maybeSingle();
+    if(storeError){setError(storeError.message);setLoading(false);return;}
+    if(!st){
+      const slug=(user.email?.split('@')[0]||'my-store').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Math.random().toString(36).slice(2,7);
+      const created=await client.from('stores').insert({owner_id:user.id,name:'My Store',slug}).select().single();
+      if(created.error){setError(created.error.message);setLoading(false);return;}
+      st=created.data;
+    }
+    setStore(st);
+    const [c,i]=await Promise.all([
+      client.from('categories').select('*').eq('store_id',st.id).order('sort_order'),
+      client.from('items').select('*').eq('store_id',st.id).order('created_at',{ascending:false})
+    ]);
+    if(c.error||i.error){setError(c.error?.message||i.error?.message||'Unable to load store data');}
+    setCats(c.data||[]); setItems(i.data||[]);
+    if((c.data||[]).length) setNewCat(c.data[0].id);
+    setLoading(false);
+  }
+
+  const filtered=useMemo(()=>items.filter(i=>i.name.toLowerCase().includes(search.toLowerCase())),[items,search]);
+
+  async function addItem(){
+    if(!store||!newName||!newPrice){setError('Enter item name and price.');return;}
+    setSaving(true);setError('');
+    const client=supabase();
+    const {data,error}=await client.from('items').insert({store_id:store.id,name:newName,price:Number(newPrice),stock:Number(newStock)||0,category_id:newCat||null,active:true}).select().single();
+    if(error)setError(error.message);else{setItems(v=>[data,...v]);setNewName('');setNewPrice('');setNewStock('10');setShowAdd(false);}
+    setSaving(false);
+  }
+
+  async function addCategory(name:string){
+    if(!store||!name.trim())return;
+    const {data,error}=await supabase().from('categories').insert({store_id:store.id,name:name.trim(),sort_order:cats.length*10,visible:true}).select().single();
+    if(error)setError(error.message);else{setCats(v=>[...v,data]);setNewCat(data.id);}
+  }
+
+  async function deleteCategory(id:string){
+    const {error}=await supabase().from('categories').delete().eq('id',id);
+    if(error)setError(error.message);else setCats(v=>v.filter(x=>x.id!==id));
+  }
+
+  async function toggleCategory(c:Cat){
+    const {error}=await supabase().from('categories').update({visible:!c.visible}).eq('id',c.id);
+    if(error)setError(error.message);else setCats(v=>v.map(x=>x.id===c.id?{...x,visible:!x.visible}:x));
+  }
+
+  async function signOut(){await supabase().auth.signOut();location.href='/connect';}
+
+  if(loading)return <div className="loading">Connecting to Supabase…</div>;
+  if(!user)return <div className="loading"><div><b>Sign in required</b><p>Connect your merchant account first.</p><button className="btn primary" onClick={()=>location.href='/connect'}>Open login</button></div></div>;
+
+  return <div className="app">
+    <aside className="sidebar">
+      <div className="brand"><div className="brandrow"><div className="logo">H</div><div className="brandtext"><div>HEPRA</div><div className="muted">Store Builder</div></div></div></div>
+      <div className="nav">{nav.map(([label,Icon])=><button key={label} className={tab===label?'active':''} onClick={()=>setTab(label)}><Icon size={14}/><span>{label}{label.startsWith('z')&&<em style={{fontSize:8,marginLeft:5,color:'#5146e5'}}>NEW</em>}</span></button>)}</div>
+      <div className="footer"><div className="live">● Taking orders</div><button className="nav" style={{border:0,background:'transparent',padding:0}} onClick={signOut}><LogOut size={13}/><span className="hide-mobile">Sign out</span></button></div>
+    </aside>
+    <main className="main">
+      <div className="top"><span>⌂ / {tab}</span><span>{store?.name||'My Store'}　↗</span></div>
+      <section className="content">
+        {error&&<div className="error">{error}<button onClick={()=>setError('')}>×</button></div>}
+        <div className="setup"><h2>Finish setting up your store 🚀</h2><p>{items.length>0?'Your catalog is live — keep building your store.':'Add your first product to start selling.'}</p><div className="setupgrid"><div className="setupitem"><b>Store</b><span>{store?.name} · /{store?.slug}</span></div><div className="setupitem"><b>Products</b><span>{items.length} items connected to Supabase</span></div><div className="setupitem"><b>Categories</b><span>{cats.length} storefront categories</span></div><div className="setupitem"><b>Payments</b><span>Configure UPI from Payments</span></div></div></div>
+        {tab==='Orders'&&<Orders/>}
+        {tab==='Items'&&<Items items={filtered} cats={cats} search={search} setSearch={setSearch} showAdd={showAdd} setShowAdd={setShowAdd} newName={newName} setNewName={setNewName} newPrice={newPrice} setNewPrice={setNewPrice} newStock={newStock} setNewStock={setNewStock} newCat={newCat} setNewCat={setNewCat} addItem={addItem} saving={saving}/>}
+        {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
+        {tab==='Discounts'&&<Coming title="Discounts"/>}
+        {tab==='Payments'&&<Payments store={store} setStore={setStore}/>}
+        {['Reports','zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
+      </section>
+      <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
+    </main>
+  </div>
+}
+
+function Orders(){return <><div className="pagehead"><div><h1>Orders</h1><p>0 total · 0 open</p></div><div className="actions"><button className="btn">🔊 Sound on</button><button className="btn">▷ Test</button></div></div><div className="cards">{[['TODAY’S ORDERS','0'],['TODAY’S REVENUE','₹0'],['OPEN QUEUE','0'],['AVG TICKET (7D)','₹0']].map(x=><div className="stat" key={x[0]}><small>{x[0]}</small><strong>{x[1]}</strong></div>)}</div><div className="panel"><div className="toolbar"><span className="pill">Open 0</span><span className="pill">New 0</span><span className="pill">Confirmed 0</span><span className="pill">Done 0</span></div><div className="empty"><div className="big">🛒</div><b>No orders here yet</b><br/>Customer orders from your storefront will appear here.</div></div></>}
+
+function Items(p:any){return <><div className="pagehead"><div><h1>Items</h1><p>{p.items.length} shown · live from Supabase</p></div><div className="actions"><button className="btn primary" onClick={()=>p.setShowAdd(true)}><Plus size={12}/> New item</button></div></div><div className="panel"><div className="toolbar"><Search size={14} color="#8a8c99"/><input className="input" value={p.search} onChange={e=>p.setSearch(e.target.value)} placeholder="Search items by name..."/></div>{p.items.length?p.items.map((i:Item)=><div className="row" key={i.id}><div className="grow"><b>{i.name}</b><div className="muted">{p.cats.find((c:Cat)=>c.id===i.category_id)?.name||'Uncategorized'} · {i.stock} in stock</div></div><span>₹{Number(i.price).toLocaleString('en-IN')}</span><span className="pill">{i.active?'Active':'Draft'}</span></div>):<div className="empty"><div className="big">▱</div>No items yet</div>}</div>{p.showAdd&&<div className="panel"><div className="panelhead">Add item <button className="btn" onClick={()=>p.setShowAdd(false)}>Close</button></div><div className="formgrid"><div className="field"><label>Item name</label><input value={p.newName} onChange={e=>p.setNewName(e.target.value)} placeholder="Premium Hoodie"/></div><div className="field"><label>Price (₹)</label><input value={p.newPrice} onChange={e=>p.setNewPrice(e.target.value)} placeholder="999" inputMode="numeric"/></div><div className="field"><label>Stock</label><input value={p.newStock} onChange={e=>p.setNewStock(e.target.value)} inputMode="numeric"/></div><div className="field"><label>Category</label><select value={p.newCat} onChange={e=>p.setNewCat(e.target.value)}><option value="">Uncategorized</option>{p.cats.map((c:Cat)=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div></div><div style={{padding:'0 13px 13px'}}><button className="btn primary" disabled={p.saving} onClick={p.addItem}>{p.saving?'Saving…':'Save item'}</button></div></div>}</>}
+
+function Categories({cats,addCategory,deleteCategory,toggleCategory}:{cats:Cat[];addCategory:(n:string)=>void;deleteCategory:(id:string)=>void;toggleCategory:(c:Cat)=>void}){const [name,setName]=useState('');return <><div className="pagehead"><div><h1>Categories</h1><p>Live categories stored in Supabase.</p></div></div><div className="panel">{cats.map(c=><div className="row" key={c.id}><div className="grow"><b>{c.name}</b><div className="muted">Sort {c.sort_order}</div></div><label style={{fontSize:9}}><input type="checkbox" checked={c.visible} onChange={()=>toggleCategory(c)}/> Visible</label><button className="iconbtn" onClick={()=>deleteCategory(c.id)}><Trash2 size={13}/></button></div>)}<div style={{padding:13}}><b style={{fontSize:11}}>Add category</b><div style={{display:'flex',gap:7,marginTop:7}}><input className="input" value={name} onChange={e=>setName(e.target.value)} placeholder="e.g. Sarees"/><button className="btn primary" onClick={()=>{addCategory(name);setName('')}}>Add category</button></div></div></div></>}
+
+function Payments({store,setStore}:{store:any;setStore:(v:any)=>void}){const [upi,setUpi]=useState(store?.upi_id||'');const [merchant,setMerchant]=useState(store?.merchant_name||store?.name||'');const [saving,setSaving]=useState(false);const save=async()=>{setSaving(true);const {data,error}=await supabase().from('stores').update({upi_id:upi,merchant_name:merchant}).eq('id',store.id).select().single();if(!error)setStore(data);setSaving(false)};return <><div className="pagehead"><div><h1>Payments</h1><p>Configure direct UPI / QR payments for your storefront.</p></div></div><div className="panel"><div className="panelhead">UPI / QR code <span className="muted">Direct merchant payment</span></div><div className="formgrid"><div className="field"><label>UPI ID</label><input value={upi} onChange={e=>setUpi(e.target.value)} placeholder="yourname@upi"/></div><div className="field"><label>Merchant name</label><input value={merchant} onChange={e=>setMerchant(e.target.value)} placeholder="My Store"/></div></div><div style={{padding:'0 13px 13px',textAlign:'right'}}><button className="btn primary" onClick={save}>{saving?'Saving…':'Save UPI details'}</button></div></div></>}
+
+function Coming({title}:{title:string}){return <div className="panel"><div className="empty"><div className="big">✨</div><b>{title}</b><br/>Module scaffold is ready for the next database integration.</div></div>}
