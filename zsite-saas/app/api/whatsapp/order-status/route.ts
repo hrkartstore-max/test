@@ -19,9 +19,11 @@ export async function POST(req:NextRequest){
   if(!store||store.owner_id!==user.id)return NextResponse.json({error:'Forbidden'},{status:403});
 
   const access=process.env.WHATSAPP_ACCESS_TOKEN,phoneId=process.env.WHATSAPP_PHONE_NUMBER_ID,version=process.env.WHATSAPP_API_VERSION;
-  if(!access||!phoneId||!version)return NextResponse.json({error:'WhatsApp Cloud API is not configured on the server yet'},{status:503});
+  if(!access||!phoneId||!version){if(log?.id)await supa.from('whatsapp_notification_logs').update({state:'failed',error_message:'WhatsApp Cloud API is not configured',updated_at:new Date().toISOString()}).eq('id',log.id);return NextResponse.json({error:'WhatsApp Cloud API is not configured on the server yet'},{status:503});}
 
   const phone=String(order.customer_phone||'').replace(/\D/g,'');
+  const templateName=templates[status];
+  const {data:log}=await supa.from('whatsapp_notification_logs').insert({store_id:order.store_id,order_id:order.id,status,template_name:templateName,customer_phone:phone,state:'pending',attempts:1,last_attempt_at:new Date().toISOString()}).select('id').single();
   if(phone.length!==10)return NextResponse.json({error:'Customer phone is not a valid Indian mobile number'},{status:400});
   const shortId=String(order.id).slice(0,8).toUpperCase();
   const params=[order.customer_name||'Customer',shortId,Number(order.total||0).toLocaleString('en-IN')];
@@ -30,7 +32,8 @@ export async function POST(req:NextRequest){
 
   const response=await fetch(`https://graph.facebook.com/${version}/${phoneId}/messages`,{method:'POST',headers:{Authorization:`Bearer ${access}`,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:'91'+phone,type:'template',template:{name:templates[status],language:{code:process.env.WHATSAPP_TEMPLATE_LANGUAGE||'en'},components:[{type:'body',parameters:params.map(text=>({type:'text',text:String(text)}))}]}})});
   const data=await response.json();
-  if(!response.ok)return NextResponse.json({error:data?.error?.message||'WhatsApp message failed',details:data?.error?.code||null},{status:502});
-  return NextResponse.json({ok:true,message_id:data?.messages?.[0]?.id||null});
+  if(!response.ok){if(log?.id)await supa.from('whatsapp_notification_logs').update({state:'failed',error_message:data?.error?.message||'WhatsApp message failed',updated_at:new Date().toISOString()}).eq('id',log.id);return NextResponse.json({error:data?.error?.message||'WhatsApp message failed',details:data?.error?.code||null},{status:502});}
+  const messageId=data?.messages?.[0]?.id||null;if(log?.id)await supa.from('whatsapp_notification_logs').update({state:'sent',provider_message_id:messageId,updated_at:new Date().toISOString()}).eq('id',log.id);
+  return NextResponse.json({ok:true,message_id:messageId});
  }catch(e:any){return NextResponse.json({error:e?.message||'WhatsApp notification failed'},{status:500});}
 }
