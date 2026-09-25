@@ -173,7 +173,7 @@ const StaffPermissionSchema=new mongoose.Schema({
 },{timestamps:true});
 StaffPermissionSchema.index({tenantId:1,userId:1},{unique:true});
 const Media=mongoose.models.Media||mongoose.model("Media",MediaSchema);
-const StaffPermission=mongoose.models.StaffPermission||mongoose.model("StaffPermission",StaffPermissionSchema);
+const StaffPermission=mongoose.models.StaffPermission||mongoose.model<any>("StaffPermission",StaffPermissionSchema);
 
 
 
@@ -260,25 +260,25 @@ app.post("/api/products",auth,async(req:AuthRequest,res)=>{
   if(!p.success)return res.status(400).json({message:"Invalid product",errors:p.error.flatten()});
   const product=await Product.create({...p.data,tenantId:tenant(req),slug:`${slugify(p.data.name)}-${Date.now()}`,status:"published"});await audit(req,"CREATE","Product",String(product._id),{name:product.name});res.status(201).json(product);
 });
-app.delete("/api/products/:id",auth,async(req:AuthRequest,res)=>{const r=await Product.deleteOne({_id:req.params.id,tenantId:tenant(req)});if(!r.deletedCount)return res.status(404).json({message:"Product not found"});await audit(req,"DELETE","Product",req.params.id);res.json({ok:true});});
+app.delete("/api/products/:id",auth,async(req:AuthRequest,res)=>{const r=await Product.deleteOne({_id:String(req.params.id),tenantId:tenant(req)});if(!r.deletedCount)return res.status(404).json({message:"Product not found"});await audit(req,"DELETE","Product",String(req.params.id));res.json({ok:true});});
 
 app.get("/api/customers",auth,async(req:AuthRequest,res)=>res.json(await Customer.find({tenantId:tenant(req)}).sort({updatedAt:-1}).lean()));
 app.get("/api/orders",auth,async(req:AuthRequest,res)=>res.json(await Order.find({tenantId:tenant(req)}).sort({createdAt:-1}).lean()));
 app.patch("/api/orders/:id/status",auth,async(req:AuthRequest,res)=>{
   const p=z.object({status:z.enum(["pending","confirmed","processing","shipped","delivered","cancelled"])}).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid order status"});
-  const order=await Order.findOneAndUpdate({_id:req.params.id,tenantId:tenant(req)},{status:p.data.status},{new:true});
+  const order=await Order.findOneAndUpdate({_id:String(req.params.id),tenantId:tenant(req)},{status:p.data.status},{new:true});
   if(!order)return res.status(404).json({message:"Order not found"});res.json(order);
 });
 
 app.get("/api/public/stores/:slug",async(req,res)=>{
-  const store=await Store.findOne({slug:req.params.slug,published:true}).lean(); if(!store)return res.status(404).json({message:"Store not found"});
+  const store=await Store.findOne({slug:String(req.params.slug),published:true}).lean(); if(!store)return res.status(404).json({message:"Store not found"});
   const products=await Product.find({tenantId:store.tenantId,status:"published"}).sort({createdAt:-1}).lean();res.json({store,products});
 });
 
 app.post("/api/public/stores/:slug/orders",async(req,res)=>{
   if(mongoose.connection.readyState!==1)return res.status(503).json({message:"Store database unavailable"});
-  const store=await Store.findOne({slug:req.params.slug,published:true});if(!store)return res.status(404).json({message:"Store not found or not published"});
+  const store=await Store.findOne({slug:String(req.params.slug),published:true});if(!store)return res.status(404).json({message:"Store not found or not published"});
   const p=z.object({customer:z.object({name:z.string().min(2),phone:z.string().min(8),email:z.string().email().optional(),address:z.string().optional()}),items:z.array(z.object({productId:z.string(),quantity:z.coerce.number().int().min(1)})).min(1),couponCode:z.string().optional()}).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid order details",errors:p.error.flatten()});
   const ids=p.data.items.map(x=>new mongoose.Types.ObjectId(x.productId)),products=await Product.find({_id:{$in:ids},tenantId:store.tenantId,status:"published"}),byId=new Map(products.map(x=>[String(x._id),x]));
@@ -352,11 +352,11 @@ app.post("/api/domains", auth, async (req: AuthRequest, res) => {
 });
 
 app.post("/api/domains/:id/verify", auth, async (req: AuthRequest, res) => {
-  const domain=await Domain.findOneAndUpdate({_id:req.params.id,tenantId:tenant(req)},
+  const domain=await Domain.findOneAndUpdate({_id:String(req.params.id),tenantId:tenant(req)},
     {status:"connected"},{new:true});
   if(!domain)return res.status(404).json({message:"Domain not found"});
   await Store.findOneAndUpdate({tenantId:tenant(req)},{customDomain:domain.domain});
-  await audit(req,"VERIFY","Domain",req.params.id,{domain:domain.domain});
+  await audit(req,"VERIFY","Domain",String(req.params.id),{domain:domain.domain});
   res.json(domain);
 });
 
@@ -392,14 +392,14 @@ app.put("/api/pages/:id", auth, async (req: AuthRequest, res: Response) => {
     sections:z.array(z.object({id:z.string(),type:z.string(),props:z.record(z.any()).optional()}))
   }).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid page",errors:p.error.flatten()});
-  const page=await Page.findOneAndUpdate({_id:req.params.id,tenantId:tenant(req)},p.data,{new:true});
+  const page=await Page.findOneAndUpdate({_id:String(req.params.id),tenantId:tenant(req)},p.data,{new:true});
   if(!page)return res.status(404).json({message:"Page not found"});
-  await audit(req,"UPDATE","Page",req.params.id,{title:page.title});res.json(page);
+  await audit(req,"UPDATE","Page",String(req.params.id),{title:page.title});res.json(page);
 });
 app.delete("/api/pages/:id", auth, async (req: AuthRequest, res: Response) => {
-  const r=await Page.deleteOne({_id:req.params.id,tenantId:tenant(req)});
+  const r=await Page.deleteOne({_id:String(req.params.id),tenantId:tenant(req)});
   if(!r.deletedCount)return res.status(404).json({message:"Page not found"});
-  await audit(req,"DELETE","Page",req.params.id);res.json({ok:true});
+  await audit(req,"DELETE","Page",String(req.params.id));res.json({ok:true});
 });
 
 app.get("/api/coupons", auth, async (req: AuthRequest, res: Response) => {
@@ -420,14 +420,14 @@ app.post("/api/coupons", auth, async (req: AuthRequest, res: Response) => {
   }catch(e:any){if(e?.code===11000)return res.status(409).json({message:"Coupon code already exists."});throw e;}
 });
 app.patch("/api/coupons/:id/toggle", auth, async (req: AuthRequest, res: Response) => {
-  const coupon=await Coupon.findOne({_id:req.params.id,tenantId:tenant(req)});
+  const coupon=await Coupon.findOne({_id:String(req.params.id),tenantId:tenant(req)});
   if(!coupon)return res.status(404).json({message:"Coupon not found"});
-  coupon.active=!coupon.active;await coupon.save();await audit(req,"UPDATE","Coupon",req.params.id,{active:coupon.active});res.json(coupon);
+  coupon.active=!coupon.active;await coupon.save();await audit(req,"UPDATE","Coupon",String(req.params.id),{active:coupon.active});res.json(coupon);
 });
 app.delete("/api/coupons/:id", auth, async (req: AuthRequest, res: Response) => {
-  const r=await Coupon.deleteOne({_id:req.params.id,tenantId:tenant(req)});
+  const r=await Coupon.deleteOne({_id:String(req.params.id),tenantId:tenant(req)});
   if(!r.deletedCount)return res.status(404).json({message:"Coupon not found"});
-  await audit(req,"DELETE","Coupon",req.params.id);res.json({ok:true});
+  await audit(req,"DELETE","Coupon",String(req.params.id));res.json({ok:true});
 });
 
 app.get("/api/staff", auth, async (req: AuthRequest, res: Response) => {
@@ -442,9 +442,9 @@ app.post("/api/staff", auth, async (req: AuthRequest, res: Response) => {
   res.status(201).json({id:staff._id,name:staff.name,email:staff.email,phone:staff.phone,role:staff.role});
 });
 app.delete("/api/staff/:id", auth, async (req: AuthRequest, res: Response) => {
-  const r=await User.deleteOne({_id:req.params.id,tenantId:tenant(req),role:"STAFF"});
+  const r=await User.deleteOne({_id:String(req.params.id),tenantId:tenant(req),role:"STAFF"});
   if(!r.deletedCount)return res.status(404).json({message:"Staff member not found"});
-  await audit(req,"DELETE","Staff",req.params.id);res.json({ok:true});
+  await audit(req,"DELETE","Staff",String(req.params.id));res.json({ok:true});
 });
 app.get("/api/audit-logs", auth, async (req: AuthRequest, res: Response) => {
   res.json(await AuditLog.find({tenantId:tenant(req)}).sort({createdAt:-1}).limit(100).lean());
@@ -467,14 +467,14 @@ app.post("/api/media/local",auth,async(req:AuthRequest,res:Response)=>{
  await audit(req,"CREATE","Media",String(media._id),{name:media.name});res.status(201).json(media);
 });
 app.delete("/api/media/:id",auth,async(req:AuthRequest,res:Response)=>{
- const media=await Media.findOne({_id:req.params.id,tenantId:tenant(req)});
+ const media=await Media.findOne({_id:String(req.params.id),tenantId:tenant(req)});
  if(!media)return res.status(404).json({message:"Media not found"});
  if(media.url.startsWith("/uploads/")){const fp=path.join(process.cwd(),media.url);if(fs.existsSync(fp))fs.unlinkSync(fp);}
- await media.deleteOne();await audit(req,"DELETE","Media",req.params.id);res.json({ok:true});
+ await media.deleteOne();await audit(req,"DELETE","Media",String(req.params.id));res.json({ok:true});
 });
 const ALL_STAFF_PERMISSIONS=["products.read","products.write","orders.read","orders.write","customers.read","pages.write","coupons.write","domains.write","media.write","staff.manage","billing.read"];
 app.get("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
- const staff=await User.findOne({_id:req.params.id,tenantId:tenant(req),role:"STAFF"}).select("-passwordHash").lean();
+ const staff=await User.findOne({_id:String(req.params.id),tenantId:tenant(req),role:"STAFF"}).select("-passwordHash").lean();
  if(!staff)return res.status(404).json({message:"Staff member not found"});
  const saved=await StaffPermission.findOne({tenantId:tenant(req),userId:String(staff._id)}).lean();
  res.json({staff,permissions:saved?.permissions||[],available:ALL_STAFF_PERMISSIONS});
@@ -482,11 +482,11 @@ app.get("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
 app.put("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
  const p=z.object({permissions:z.array(z.string())}).safeParse(req.body);
  if(!p.success)return res.status(400).json({message:"Invalid permissions"});
- const staff=await User.findOne({_id:req.params.id,tenantId:tenant(req),role:"STAFF"});
+ const staff=await User.findOne({_id:String(req.params.id),tenantId:tenant(req),role:"STAFF"});
  if(!staff)return res.status(404).json({message:"Staff member not found"});
  const permissions=p.data.permissions.filter(x=>ALL_STAFF_PERMISSIONS.includes(x));
  const saved=await StaffPermission.findOneAndUpdate({tenantId:tenant(req),userId:String(staff._id)},{permissions},{new:true,upsert:true});
- await audit(req,"UPDATE","StaffPermissions",req.params.id,{permissions});res.json(saved);
+ await audit(req,"UPDATE","StaffPermissions",String(req.params.id),{permissions});res.json(saved);
 });
 app.get("/api/storefront/config",async(req:Request,res:Response)=>{
  const host=String(req.headers.host||"").split(":")[0].toLowerCase();
@@ -503,7 +503,7 @@ app.get("/api/storefront/config",async(req:Request,res:Response)=>{
 });
 
 app.get("/api/public/store/:host", async (req: Request, res: Response) => {
-  const host=String(req.params.host||"").split(":")[0].toLowerCase();
+  const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
   const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
   const store=await Store.findOne({
     $or:[
@@ -519,7 +519,7 @@ app.get("/api/public/store/:host", async (req: Request, res: Response) => {
 });
 
 app.get("/api/public/store/:host/page/:slug", async (req: Request, res: Response) => {
-  const host=String(req.params.host||"").split(":")[0].toLowerCase();
+  const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
   const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
   const store=await Store.findOne({
     $or:[
@@ -529,7 +529,7 @@ app.get("/api/public/store/:host/page/:slug", async (req: Request, res: Response
     ]
   }).lean();
   if(!store)return res.status(404).json({message:"Store not found"});
-  const page=await Page.findOne({tenantId:store.tenantId,slug:req.params.slug,status:"published"}).lean();
+  const page=await Page.findOne({tenantId:store.tenantId,slug:String(req.params.slug),status:"published"}).lean();
   if(!page)return res.status(404).json({message:"Published page not found"});
   const products=await Product.find({tenantId:store.tenantId,status:"published"}).sort({createdAt:-1}).limit(100).lean();
   res.json({store:{name:store.name,branding:store.branding,seoTitle:store.seoTitle||store.name,seoDescription:store.seoDescription||`Shop ${store.name}`},page,products});
