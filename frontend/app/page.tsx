@@ -89,6 +89,31 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-showcase">
+        <div className="ref-container">
+          <div className="ref-section-head">
+            <div><div className="ref-kicker">STORE PREVIEWS</div><h2>One platform.<br/><span>Many businesses.</span></h2></div>
+            <p>Start with a storefront built for your category, then make it completely yours.</p>
+          </div>
+          <div className="ref-showcase-grid">
+            {[
+              ["Restaurant","Fresh menu • Online ordering","🍕","ref-showcase-food"],
+              ["Fashion","Collections • Wishlist • Cart","👗","ref-showcase-fashion"],
+              ["Jewellery","Premium catalog • Enquiry","💎","ref-showcase-jewel"]
+            ].map(([name,copy,icon,cls]) => (
+              <article className="ref-showcase-card" key={name}>
+                <div className={`ref-showcase-screen ${cls}`}>
+                  <div className="ref-screen-top"><span>HEPRA</span><i>☰</i></div>
+                  <div className="ref-screen-hero"><small>{name.toUpperCase()}</small><strong>{icon}</strong><h3>{name}</h3><p>{copy}</p><b>SHOP NOW →</b></div>
+                  <div className="ref-screen-products"><i/><i/><i/></div>
+                </div>
+                <div className="ref-showcase-meta"><div><b>{name}</b><span>{copy}</span></div><Link href="/register">Build yours <ArrowRight size={14}/></Link></div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="ref-section ref-features">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">THE TOOLKIT</div><h2>Everything your<br/><span>business needs.</span></h2></div><p>One simple platform for your storefront, selling tools and daily operations.</p></div>
