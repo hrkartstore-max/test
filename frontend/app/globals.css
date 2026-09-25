@@ -100,3 +100,17 @@
 .ref-pricing-three .ref-pricing-row,
 .ref-pricing-three .ref-pricing-actions{grid-template-columns:1.4fr repeat(3,1fr)}
 .ref-pricing-three .ref-pricing-row>div:nth-child(4){background:#faf3ff}
+
+/* India-first feature section */
+.ref-india{background:#111318;color:#fff}
+.ref-india-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;align-items:start}
+.ref-india .ref-kicker{color:#aaa}
+.ref-india h2{font-family:"Arial Black",Inter,sans-serif;text-transform:uppercase;font-size:clamp(42px,5vw,65px);line-height:.91;letter-spacing:-.07em;margin:16px 0 22px}
+.ref-india h2 span{color:var(--r-orange)}
+.ref-india>div>div>p{color:#aaa;line-height:1.7;font-size:13px;max-width:480px;margin-bottom:28px}
+.ref-india-points{border-top:1px solid #34363b}
+.ref-india-point{display:grid;grid-template-columns:45px 1fr;gap:16px;padding:18px 0;border-bottom:1px solid #34363b}
+.ref-india-point>b{font-size:8px;color:var(--r-orange);padding-top:2px}
+.ref-india-point strong{font-size:11px;letter-spacing:.08em}
+.ref-india-point p{font-size:10px;color:#85878b;line-height:1.5;margin:5px 0 0}
+@media(max-width:800px){.ref-india-grid{grid-template-columns:1fr;gap:45px}.ref-india h2{font-size:46px}}
