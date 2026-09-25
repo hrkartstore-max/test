@@ -214,3 +214,14 @@
 .ref-faq-item[open] summary b{transform:rotate(45deg)}
 .ref-faq-item p{color:#706b64;font-size:11px;line-height:1.65;margin:0 30px 18px 0;max-width:650px}
 @media(max-width:800px){.ref-faq-grid{grid-template-columns:1fr;gap:40px}.ref-faq-grid h2{font-size:48px}}
+
+/* Final conversion CTA */
+.ref-final-cta{background:#111318;padding:18px 0 35px}
+.ref-final-cta-box{background:var(--r-orange);padding:60px 65px;display:flex;align-items:end;justify-content:space-between;gap:45px}
+.ref-final-cta-box .ref-kicker{color:#ffd6ce}
+.ref-final-cta-box h2{font-family:"Arial Black",Inter,sans-serif;text-transform:uppercase;color:#fff;font-size:clamp(44px,6vw,72px);line-height:.88;letter-spacing:-.07em;margin:14px 0 18px}
+.ref-final-cta-box h2 span{color:#111318}
+.ref-final-cta-box p{color:#fff0eb;font-size:13px;margin:0;line-height:1.6}
+.ref-final-actions{display:flex;flex-direction:column;gap:9px;min-width:220px}
+.ref-final-actions .ref-outline-btn{border-color:#111318;color:#111318;background:transparent}
+@media(max-width:700px){.ref-final-cta-box{padding:40px 25px;display:block}.ref-final-actions{margin-top:30px}.ref-final-cta-box h2{font-size:48px}}
