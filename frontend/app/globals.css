@@ -247,3 +247,10 @@
   .ref-nav-actions .ref-login{display:none}
   .ref-nav-actions{margin-left:auto}
 }
+
+
+/* Registration plan selection */
+.register-plan{grid-column:span 2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #ddd;border-radius:11px;background:#f7f7f4}
+.register-plan span{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+.register-plan strong{font-size:12px}
+@media(max-width:650px){.register-plan{grid-column:auto;display:grid;gap:5px}}
