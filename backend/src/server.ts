@@ -12,7 +12,7 @@ app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000" }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false }));
 app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false }));
-app.use(express.json({ limit: "8mb" }));
+app.use(express.json({ limit: "8mb", verify: (req, _res, buf) => { if (req.originalUrl === "/api/payments/cashfree/webhook") (req as any).rawBody = Buffer.from(buf); } }));
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://fdimdbtoeecewbgrskvk.supabase.co";
 const SUPABASE_PUBLIC_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "sb_publishable_r2bMcoSiIAsI5qZkgfEP7Q_eOmkJSCd";
@@ -345,7 +345,62 @@ app.put("/api/staff/:id/permissions", requireUser, async(req,res)=>{const p=z.ob
 
 app.get("/api/subscription", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const sb=tenantStore(req as AuthRequest);let {data,error}=await sb.from("store_subscriptions").select("*").eq("store_id",store.id).maybeSingle();if(error)throw error;if(!data){const created=await sb.from("store_subscriptions").insert({store_id:store.id,plan:"free",billing_interval:"monthly",provider:"local",status:"active",amount:0}).select("*").single();if(created.error)throw created.error;data=created.data;}res.json({subscription:{planId:data.plan==="starter"?"starter":data.plan,status:data.status==="active"?"active":"trialing",renewsAt:data.current_period_end},plan:{id:data.plan,name:data.plan==="starter"?"Basic":data.plan==="growth"?"Growth":"Pro+"}});}catch(e:any){res.status(500).json({message:e.message});}});
 app.post("/api/subscription/cancel", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);const {data,error}=await tenantStore(req as AuthRequest).from("store_subscriptions").update({status:"cancelled"}).eq("store_id",store.id).select("*").single();if(error)throw error;res.json(data);}catch(e:any){res.status(500).json({message:e.message});}});
-app.post("/api/subscription/checkout", requireUser, async(req,res)=>{const p=z.object({planId:z.enum(["free","starter","pro"])}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Invalid plan"});try{const store=await getOwnedStore(req as AuthRequest);const prices:any={free:0,starter:299,pro:499};const {data,error}=await tenantStore(req as AuthRequest).from("store_subscriptions").upsert({store_id:store.id,plan:p.data.planId,billing_interval:"monthly",provider:"local",status:"active",amount:prices[p.data.planId]},{onConflict:"store_id"}).select("*").single();if(error)throw error;res.json({ok:true,mode:"local",subscription:data});}catch(e:any){res.status(500).json({message:e.message});}});
+app.post("/api/subscription/checkout", requireUser, async(req,res)=>{
+  const p=z.object({planId:z.enum(["free","starter","pro"])}).safeParse(req.body);
+  if(!p.success)return res.status(400).json({message:"Invalid plan"});
+  try{
+    const store=await getOwnedStore(req as AuthRequest);
+    const prices:any={free:0,starter:299,pro:499};
+    if(p.data.planId==="free"){
+      const {data,error}=await tenantStore(req as AuthRequest).from("store_subscriptions").upsert({store_id:store.id,plan:"free",billing_interval:"monthly",provider:"cashfree",status:"active",amount:0},{onConflict:"store_id"}).select("*").single();
+      if(error)throw error;
+      return res.json({ok:true,mode:"free",subscription:data});
+    }
+    const clientId=process.env.CASHFREE_CLIENT_ID;
+    const clientSecret=process.env.CASHFREE_CLIENT_SECRET;
+    if(!clientId||!clientSecret)return res.status(503).json({message:"Cashfree is not configured. Add CASHFREE_CLIENT_ID and CASHFREE_CLIENT_SECRET in Vercel."});
+    const origin=process.env.FRONTEND_URL||"http://localhost:3000";
+    const orderId=`hep_${store.id.replace(/-/g,"").slice(0,16)}_${p.data.planId}_${Date.now()}`;
+    const amount=prices[p.data.planId];
+    const response=await fetch("https://api.cashfree.com/pg/orders",{method:"POST",headers:{"Content-Type":"application/json","x-api-version":"2025-01-01","x-client-id":clientId,"x-client-secret":clientSecret,"x-request-id":crypto.randomUUID(),"x-idempotency-key":crypto.randomUUID()},body:JSON.stringify({order_id:orderId,order_amount:amount,order_currency:"INR",customer_details:{customer_id:store.owner_id,customer_name:store.merchant_name||store.name,customer_email:req.user!.email||"merchant@hepra.in"},order_meta:{return_url:`${origin}/dashboard/billing?payment=processing&order_id=${orderId}`,notify_url:`${origin}/api/payments/cashfree/webhook`},order_note:`HEPRA ${p.data.planId} monthly subscription`})});
+    const cf=await response.json().catch(()=>({}));
+    if(!response.ok)return res.status(502).json({message:cf.message||"Cashfree order creation failed"});
+    const {data,error}=await tenantStore(req as AuthRequest).from("store_subscriptions").upsert({store_id:store.id,plan:p.data.planId,billing_interval:"monthly",provider:"cashfree",status:"pending",amount},{onConflict:"store_id"}).select("*").single();
+    if(error)throw error;
+    res.json({ok:true,mode:"cashfree",orderId,cfOrderId:cf.cf_order_id,paymentSessionId:cf.payment_session_id,subscription:data});
+  }catch(e:any){res.status(500).json({message:e.message});}
+});
+
+app.post("/api/payments/cashfree/webhook", async(req,res)=>{
+  try{
+    const secret=process.env.CASHFREE_CLIENT_SECRET;
+    if(!secret)return res.status(503).json({message:"Cashfree webhook secret is not configured."});
+    const signature=String(req.headers["x-webhook-signature"]||"");
+    const timestamp=String(req.headers["x-webhook-timestamp"]||"");
+    const raw=(req as any).rawBody as Buffer;
+    if(!signature||!timestamp||!raw)return res.status(400).json({message:"Invalid webhook payload"});
+    const expected=crypto.createHmac("sha256",secret).update(timestamp+raw.toString("utf8")).digest("base64");
+    if(!crypto.timingSafeEqual(Buffer.from(signature),Buffer.from(expected)))return res.status(401).json({message:"Invalid webhook signature"});
+    const payload=req.body||{};
+    const orderId=payload?.data?.order?.order_id||payload?.data?.order?.order_id||payload?.order?.order_id;
+    const paymentStatus=String(payload?.data?.payment?.payment_status||payload?.data?.order?.order_status||payload?.event||"").toUpperCase();
+    if(!orderId)return res.json({ok:true});
+    const plan=orderId.includes("_pro_")?"pro":orderId.includes("_starter_")?"starter":null;
+    const storeKey=orderId.match(/^hep_([a-f0-9]{16})_/i)?.[1];
+    if(!plan||!storeKey)return res.json({ok:true});
+    const admin=adminSupabase();
+    const stores=await admin.from("stores").select("id").ilike("id",`${storeKey}%`).limit(1);
+    const store=stores.data?.[0];
+    if(!store)return res.json({ok:true});
+    if(["SUCCESS","PAID","COMPLETED"].some(x=>paymentStatus.includes(x))){
+      const {error}=await admin.from("store_subscriptions").update({plan,billing_interval:"monthly",provider:"cashfree",status:"active",amount:plan==="pro"?499:299,current_period_start:new Date().toISOString(),current_period_end:new Date(Date.now()+30*24*60*60*1000).toISOString()}).eq("store_id",store.id);
+      if(error)throw error;
+    }else if(["FAILED","CANCELLED","USER_DROPPED"].some(x=>paymentStatus.includes(x))){
+      await admin.from("store_subscriptions").update({status:"payment_failed"}).eq("store_id",store.id);
+    }
+    res.json({ok:true});
+  }catch(e:any){console.error("Cashfree webhook failed:",e);res.status(500).json({message:"Webhook processing failed"});}
+});
 app.get("/api/plans",(_req,res)=>res.json([{id:"free",name:"FREE",price:0,interval:"month"},{id:"starter",name:"STARTER",price:299,interval:"month"},{id:"pro",name:"PRO",price:499,interval:"month"}]));
 app.get("/api/payments/config",(_req,res)=>res.json({provider:process.env.RAZORPAY_KEY_ID&&process.env.RAZORPAY_KEY_SECRET?"razorpay":"local",keyId:process.env.RAZORPAY_KEY_ID||null,currency:"INR"}));
 
