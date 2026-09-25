@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react"; import { api } from "../lib/api";
+import { useState } from "react";
 export default function Admin(){const [form,setForm]=useState({name:"HEPRA Admin",email:"admin@hepra.local",password:"Admin@12345"});const [key,setKey]=useState("change-this-local-key");const [token,setToken]=useState("");const [summary,setSummary]=useState<any>(null);const [merchants,setMerchants]=useState<any[]>([]);const [error,setError]=useState("");
 async function bootstrap(){try{const base=process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000";const r=await fetch(base+"/api/admin/bootstrap",{method:"POST",headers:{"Content-Type":"application/json","x-admin-setup-key":key},body:JSON.stringify(form)});const d=await r.json();if(!r.ok)throw new Error(d.message);setToken(d.token);localStorage.setItem("hepra_token",d.token);load(d.token)}catch(e:any){setError(e.message)}}
 async function load(t=token){try{const base=process.env.NEXT_PUBLIC_API_URL||"http://localhost:4000";const h={Authorization:`Bearer ${t}`};const [s,m]=await Promise.all([fetch(base+"/api/admin/summary",{headers:h}).then(r=>r.json()),fetch(base+"/api/admin/merchants",{headers:h}).then(r=>r.json())]);if(s.message)throw new Error(s.message);setSummary(s);setMerchants(m)}catch(e:any){setError(e.message)}}
