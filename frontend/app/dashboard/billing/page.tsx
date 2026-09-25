@@ -5,9 +5,9 @@ import Script from "next/script";
 import { api } from "../../../lib/api";
 
 const plans = [
-  {id:"starter",name:"Basic",price:200,copy:"Perfect for small businesses getting started online",features:["Up to 100 products","Easy-to-use Admin Panel","WhatsApp Ordering","UPI QR Code / COD","Mobile-responsive online store","WhatsApp support"]},
-  {id:"pro",name:"Pro",price:999,copy:"Perfect for businesses looking to grow online",features:["Unlimited products","Custom domain","WhatsApp Ordering","UPI + Cards + COD","Mobile-responsive online store","Priority support"]},
-  {id:"business",name:"Pro+",price:1999,copy:"Perfect for businesses ready to automate & scale",features:["Everything in Pro","WhatsApp Business API","Promotion templates + chatbot","POS billing software","Payment gateway","Custom domain","Priority support"]}
+  {id:"free",name:"FREE",price:0,copy:"Start your online store with the essentials.",features:["Up to 10 products","HEPRA subdomain","Storefront + cart","COD","Basic inventory","Basic customers"]},
+  {id:"starter",name:"STARTER",price:299,copy:"For growing businesses that need more selling tools.",features:["Up to 100 products","Custom domain","WhatsApp ordering","UPI + COD","Discounts + coupons","Shiprocket","Basic analytics"]},
+  {id:"pro",name:"PRO",price:499,copy:"For businesses ready for advanced selling and growth.",features:["Unlimited products","Online payment gateway","Advanced inventory","Advanced analytics","Full customization","10 staff accounts","AI tools"]},
 ];
 
 declare global {
