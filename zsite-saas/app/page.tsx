@@ -99,12 +99,18 @@ export default function Home(){
       <section className="content">
         {error&&<div className="error">{error}<button onClick={()=>setError('')}>×</button></div>}
         <div className="setup"><h2>Finish setting up your store 🚀</h2><p>{items.length>0?'Your catalog is live — keep building your store.':'Add your first product to start selling.'}</p><div className="setupgrid"><div className="setupitem"><b>Store</b><span>{store?.name} · /{store?.slug}</span></div><div className="setupitem"><b>Products</b><span>{items.length} items connected to Supabase</span></div><div className="setupitem"><b>Categories</b><span>{cats.length} storefront categories</span></div><div className="setupitem"><b>Payments</b><span>Configure UPI from Payments</span></div></div></div>
-        {tab==='Dashboard'&&<Dashboard store={store} items={items} cats={cats}/>}\n        {tab==='Orders'&&<Orders store={store}/>}\n        {tab==='Customers'&&<Customers store={store}/>}
+        {tab==='Dashboard'&&<Dashboard store={store} items={items} cats={cats}/>}
+        {tab==='Orders'&&<Orders store={store}/>}
+        {tab==='Customers'&&<Customers store={store}/>}
         {tab==='Items'&&<Items items={filtered} cats={cats} search={search} setSearch={setSearch} showAdd={showAdd} setShowAdd={setShowAdd} store={store} setItems={setItems} setError={setError} newName={newName} setNewName={setNewName} newPrice={newPrice} setNewPrice={setNewPrice} newStock={newStock} setNewStock={setNewStock} newCat={newCat} setNewCat={setNewCat} addItem={addItem} saving={saving}/>}
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
         {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>} {tab==='Plan'&&<Plan store={store} items={items} cats={cats}/>}
-        {tab==='Reports'&&<Reports store={store} items={items}/>}\n      {tab==='WhatsApp'&&<WhatsApp store={store} setStore={setStore}/>}\n      {tab==='Notification Logs'&&<NotificationLogs store={store}/>}\n      {tab==='Store Customizer'&&<StoreCustomizer store={store} setStore={setStore}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
+        {tab==='Reports'&&<Reports store={store} items={items}/>}
+      {tab==='WhatsApp'&&<WhatsApp store={store} setStore={setStore}/>}
+      {tab==='Notification Logs'&&<NotificationLogs store={store}/>}
+      {tab==='Store Customizer'&&<StoreCustomizer store={store} setStore={setStore}/>}
+        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
       </section>
       <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
     </main>
