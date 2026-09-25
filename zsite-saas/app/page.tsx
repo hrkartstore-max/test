@@ -124,7 +124,25 @@ function Items(p:any){
   const [busy,setBusy]=useState(false);
   function openNew(){setEditing(null);setFile(null);setForm({name:'',description:'',price:'',compare_at_price:'',stock:'10',category_id:p.cats[0]?.id||'',active:true,image_url:null});p.setShowAdd(true);}
   function openEdit(i:Item){setEditing(i);setFile(null);setForm({name:i.name,description:i.description||'',price:i.price,compare_at_price:i.compare_at_price||'',stock:i.stock,category_id:i.category_id||'',active:i.active,image_url:i.image_url});p.setShowAdd(true);}
-  async function loadMedia(){setMediaLoading(true);const {data}=await supabase().storage.from('store-assets').list(store.id,{limit:100,sortBy:{column:'created_at',order:'desc'}});setMedia((data||[]).filter((x:any)=>x.name));setMediaLoading(false)} useEffect(()=>{if(store?.id)loadMedia()},[store?.id]); async function removeMedia(name:string){const {error}=await supabase().storage.from('store-assets').remove([`${store.id}/${name}`]);if(error)setSaved(error.message);else{setSaved('Media deleted');loadMedia()}} async function useMedia(name:string){const {data}=supabase().storage.from('store-assets').getPublicUrl(`${store.id}/${name}`);const isLogo=name.startsWith('logo-');setForm((v:any)=>({...v,[isLogo?'logo_url':'hero_image_url']:data.publicUrl}));setSaved('Media selected. Publish changes to apply.')} async function useMedia(name:string){const {data}=supabase().storage.from('store-assets').getPublicUrl(`${store.id}/${name}`);const isLogo=name.startsWith('logo-');setForm((v:any)=>({...v,[isLogo?'logo_url':'hero_image_url']:data.publicUrl}));setSaved('Media selected. Publish changes to apply.')} async function removeMedia(name:string){const {error}=await supabase().storage.from('store-assets').remove([`${store.id}/${name}`]);if(error)setSaved(error.message);else{setSaved('Media deleted');loadMedia()}} async function loadMedia(){setMediaLoading(true);const {data}=await supabase().storage.from('store-assets').list(store.id,{limit:100,sortBy:{column:'created_at',order:'desc'}});setMedia((data||[]).filter((x:any)=>x.name));setMediaLoading(false)} useEffect(()=>{if(store?.id)loadMedia()},[store?.id]); async function useMedia(name:string){const {data}=supabase().storage.from('store-assets').getPublicUrl(`${store.id}/${name}`);const isLogo=name.startsWith('logo-');setForm((v:any)=>({...v,[isLogo?'logo_url':'hero_image_url']:data.publicUrl}));setSaved('Media selected. Publish changes to apply.')} async function removeMedia(name:string){const {error}=await supabase().storage.from('store-assets').remove([`${store.id}/${name}`]);if(error)setSaved(error.message);else{setSaved('Media deleted');loadMedia()}} async function loadMedia(){setMediaLoading(true);const {data}=await supabase().storage.from('store-assets').list(store.id,{limit:100,sortBy:{column:'created_at',order:'desc'}});setMedia((data||[]).filter((x:any)=>x.name));setMediaLoading(false)} useEffect(()=>{if(store?.id)loadMedia()},[store?.id]); async function loadMedia(){setMediaLoading(true);const {data}=await supabase().storage.from('store-assets').list(store.id,{limit:100,sortBy:{column:'created_at',order:'desc'}});setMedia((data||[]).filter((x:any)=>x.name));setMediaLoading(false)} async function useMedia(name:string){const u=supabase().storage.from('store-assets').getPublicUrl(store.id+'/'+name).data.publicUrl;setForm((v:any)=>({...v,hero_image_url:u}));setSaved('Media selected. Publish changes to apply.')} async function removeMedia(name:string){const {error}=await supabase().storage.from('store-assets').remove([store.id+'/'+name]);if(error)setSaved(error.message);else{setSaved('Media deleted');loadMedia()}} useEffect(()=>{if(store?.id)loadMedia()},[store?.id]); async function save(){
+  async function loadMedia(){
+    if(!store?.id)return;
+    setMediaLoading(true);
+    const {data,error}=await supabase().storage.from('store-assets').list(store.id,{limit:100,sortBy:{column:'created_at',order:'desc'}});
+    if(error)setSaved(error.message);else setMedia((data||[]).filter((x:any)=>x.name));
+    setMediaLoading(false);
+  }
+  useEffect(()=>{if(store?.id)loadMedia()},[store?.id]);
+  async function useMedia(name:string){
+    const {data}=supabase().storage.from('store-assets').getPublicUrl(`${store.id}/${name}`);
+    const isLogo=name.startsWith('logo-');
+    setForm((v:any)=>({...v,[isLogo?'logo_url':'hero_image_url']:data.publicUrl}));
+    setSaved('Media selected. Publish changes to apply.');
+  }
+  async function removeMedia(name:string){
+    const {error}=await supabase().storage.from('store-assets').remove([`${store.id}/${name}`]);
+    if(error)setSaved(error.message);else{setSaved('Media deleted');loadMedia()}
+  }
+ async function save(){
     if(!form.name||!form.price){p.setError?.('Enter item name and price.');return;}
     setBusy(true);const client=supabase();let image=form.image_url||null;
     const {data:{user}}=await client.auth.getUser();
