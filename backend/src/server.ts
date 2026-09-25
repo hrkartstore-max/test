@@ -228,7 +228,7 @@ app.post("/api/auth/login", async (req,res)=>{
   if(mongoose.connection.readyState!==1)return res.status(503).json({message:"Database is not connected. Start MongoDB and restart the API."});
   const user=await User.findOne({email:p.data.email});
   if(!user || !(await bcrypt.compare(p.data.password,user.passwordHash)))return res.status(401).json({message:"Invalid email or password."});
-  const store=await Store.findOne({tenantId:user.tenantId});
+  const store: any=await Store.findOne({tenantId:user.tenantId});
   res.json({token:signToken(user),user:{id:user._id,name:user.name,email:user.email,role:user.role,tenantId:user.tenantId},store:store?{id:store._id,name:store.name,slug:store.slug,published:store.published}:null});
 });
 
@@ -242,7 +242,7 @@ app.put("/api/store",auth,async(req:AuthRequest,res)=>{
   }).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid store settings",errors:p.error.flatten()});
   if(await Store.findOne({slug:p.data.slug,tenantId:{$ne:tenant(req)}}))return res.status(409).json({message:"That store URL is already taken."});
-  const store=await Store.findOneAndUpdate({tenantId:tenant(req)},p.data,{new:true}); if(!store)return res.status(404).json({message:"Store not found"});res.json(store);
+  const store: any=await Store.findOneAndUpdate({tenantId:tenant(req)},p.data,{new:true}); if(!store)return res.status(404).json({message:"Store not found"});res.json(store);
 });
 
 app.get("/api/dashboard/stats",auth,async(req:AuthRequest,res)=>{
@@ -278,7 +278,7 @@ app.get("/api/public/stores/:slug",async(req,res)=>{
 
 app.post("/api/public/stores/:slug/orders",async(req,res)=>{
   if(mongoose.connection.readyState!==1)return res.status(503).json({message:"Store database unavailable"});
-  const store=await Store.findOne({slug:String(req.params.slug),published:true});if(!store)return res.status(404).json({message:"Store not found or not published"});
+  const store: any=await Store.findOne({slug:String(req.params.slug),published:true});if(!store)return res.status(404).json({message:"Store not found or not published"});
   const p=z.object({customer:z.object({name:z.string().min(2),phone:z.string().min(8),email:z.string().email().optional(),address:z.string().optional()}),items:z.array(z.object({productId:z.string(),quantity:z.coerce.number().int().min(1)})).min(1),couponCode:z.string().optional()}).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid order details",errors:p.error.flatten()});
   const ids=p.data.items.map(x=>new mongoose.Types.ObjectId(x.productId)),products=await Product.find({_id:{$in:ids},tenantId:store.tenantId,status:"published"}),byId=new Map(products.map(x=>[String(x._id),x]));
@@ -505,7 +505,7 @@ app.get("/api/storefront/config",async(req:Request,res:Response)=>{
 app.get("/api/public/store/:host", async (req: Request, res: Response) => {
   const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
   const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
-  const store=await Store.findOne({
+  const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
       {subdomain:host.split(".")[0]},
@@ -521,7 +521,7 @@ app.get("/api/public/store/:host", async (req: Request, res: Response) => {
 app.get("/api/public/store/:host/page/:slug", async (req: Request, res: Response) => {
   const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
   const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
-  const store=await Store.findOne({
+  const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
       {subdomain:host.split(".")[0]},
@@ -542,14 +542,14 @@ app.put("/api/store/seo", auth, async (req: AuthRequest, res: Response) => {
     faviconUrl:z.string().url().or(z.literal("")).optional()
   }).safeParse(req.body);
   if(!p.success)return res.status(400).json({message:"Invalid SEO settings"});
-  const store=await Store.findOneAndUpdate({tenantId:tenant(req)},p.data,{new:true});
+  const store: any=await Store.findOneAndUpdate({tenantId:tenant(req)},p.data,{new:true});
   if(!store)return res.status(404).json({message:"Store not found"});
   await audit(req,"UPDATE","StoreSEO",String(store._id),p.data);
   res.json(store);
 });
 
 app.post("/api/store/publish", auth, async (req: AuthRequest, res: Response) => {
-  const store=await Store.findOne({tenantId:tenant(req)});
+  const store: any=await Store.findOne({tenantId:tenant(req)});
   if(!store)return res.status(404).json({message:"Store not found"});
   const publishedPages=await Page.countDocuments({tenantId:tenant(req),status:"published"});
   if(!publishedPages)return res.status(400).json({message:"Publish at least one page before publishing the store."});
