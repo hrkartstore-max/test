@@ -490,7 +490,7 @@ app.put("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
 });
 app.get("/api/storefront/config",async(req:Request,res:Response)=>{
  const host=String(req.headers.host||"").split(":")[0].toLowerCase();
- const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
+ const connectedDomain: any=await Domain.findOne({domain:host,status:"connected"}).lean();
   const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
@@ -504,7 +504,7 @@ app.get("/api/storefront/config",async(req:Request,res:Response)=>{
 
 app.get("/api/public/store/:host", async (req: Request, res: Response) => {
   const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
-  const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
+  const connectedDomain: any=await Domain.findOne({domain:host,status:"connected"}).lean();
   const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
@@ -520,7 +520,7 @@ app.get("/api/public/store/:host", async (req: Request, res: Response) => {
 
 app.get("/api/public/store/:host/page/:slug", async (req: Request, res: Response) => {
   const host=String(String(req.params.host)||"").split(":")[0].toLowerCase();
-  const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
+  const connectedDomain: any=await Domain.findOne({domain:host,status:"connected"}).lean();
   const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
