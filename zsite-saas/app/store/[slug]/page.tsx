@@ -34,10 +34,8 @@ export default function Storefront({params}:{params:{slug:string}}){
   async function placeOrder(){
     if(!store||!customer.name||!customer.phone||!cart.length)return;
     const client=supabase();
-    const order=await client.from('orders').insert({store_id:store.id,customer_name:customer.name,customer_phone:customer.phone,customer_address:customer.address,notes:customer.notes,status:'new',payment_status:'pending',subtotal:total,discount:0,total}).select().single();
-    if(order.error){setError(order.error.message);return;}
-    const lines=await client.from('order_items').insert(cart.map(l=>({order_id:order.data.id,item_id:l.item.id,item_name:l.item.name,quantity:l.quantity,unit_price:Number(l.item.price),total:Number(l.item.price)*l.quantity})));
-    if(lines.error){setError(lines.error.message);return;}
+    const {error:orderError}=await client.rpc('place_public_order',{p_store_id:store.id,p_customer_name:customer.name,p_customer_phone:customer.phone,p_customer_address:customer.address,p_notes:customer.notes,p_items:cart.map(l=>({item_id:l.item.id,quantity:l.quantity}))});
+    if(orderError){setError(orderError.message);return;}
     setCart([]);setCheckoutOpen(false);setCartOpen(false);setSuccess('Order placed successfully! The store has received your order.');
   }
   if(loading)return <div className="store-loading">Loading store…</div>;
