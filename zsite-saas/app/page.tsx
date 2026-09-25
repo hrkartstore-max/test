@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 type Item={id:string;name:string;description:string|null;price:number;compare_at_price:number|null;stock:number;category_id:string|null;active:boolean;image_url:string|null};
 type Cat={id:string;name:string;sort_order:number;visible:boolean};
 
-const nav=[['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
+const nav=[['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
 
 export default function Home(){
   const [tab,setTab]=useState('Orders');
@@ -99,7 +99,7 @@ export default function Home(){
         {tab==='Items'&&<Items items={filtered} cats={cats} search={search} setSearch={setSearch} showAdd={showAdd} setShowAdd={setShowAdd} store={store} setItems={setItems} setError={setError} newName={newName} setNewName={setNewName} newPrice={newPrice} setNewPrice={setNewPrice} newStock={newStock} setNewStock={setNewStock} newCat={newCat} setNewCat={setNewCat} addItem={addItem} saving={saving}/>}
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
-        {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>}
+        {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>} {tab==='Plan'&&<Plan store={store} items={items} cats={cats}/>}
         {['Reports','zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
       </section>
       <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
@@ -323,3 +323,39 @@ function Payments({store,setStore}:{store:any;setStore:(v:any)=>void}){const [up
 function Coming({title}:{title:string}){return <div className="panel"><div className="empty"><div className="big">✨</div><b>{title}</b><br/>Module scaffold is ready for the next database integration.</div></div>}
 
 function Shipping({store,setStore}:{store:any;setStore:(v:any)=>void}){const [enabled,setEnabled]=useState(!!store?.shipping_enabled);const [pickup,setPickup]=useState(store?.pickup_postcode||'');const [weight,setWeight]=useState(store?.default_package_weight||0.5);const [length,setLength]=useState(store?.default_package_length||15);const [breadth,setBreadth]=useState(store?.default_package_breadth||10);const [height,setHeight]=useState(store?.default_package_height||5);const [saving,setSaving]=useState(false);async function save(){setSaving(true);const {data,error}=await supabase().from('stores').update({shipping_enabled:enabled,pickup_postcode:pickup,default_package_weight:Number(weight),default_package_length:Number(length),default_package_breadth:Number(breadth),default_package_height:Number(height)}).eq('id',store.id).select().single();if(!error)setStore(data);setSaving(false)}return <><div className="pagehead"><div><h1>Shipping</h1><p>Shiprocket shipping partner integration.</p></div></div><div className="panel"><div className="panelhead">Shiprocket <span className="muted">Platform API connection</span></div><div className="formgrid"><div className="field"><label>Integration</label><label><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Enable Shiprocket</label></div><div className="field"><label>Pickup pincode</label><input value={pickup} onChange={e=>setPickup(e.target.value)} placeholder="600001"/></div><div className="field"><label>Default weight (kg)</label><input value={weight} onChange={e=>setWeight(e.target.value)} inputMode="decimal"/></div><div className="field"><label>Length (cm)</label><input value={length} onChange={e=>setLength(e.target.value)} inputMode="decimal"/></div><div className="field"><label>Breadth (cm)</label><input value={breadth} onChange={e=>setBreadth(e.target.value)} inputMode="decimal"/></div><div className="field"><label>Height (cm)</label><input value={height} onChange={e=>setHeight(e.target.value)} inputMode="decimal"/></div></div><div style={{padding:'0 13px 13px'}}><button className="btn primary" onClick={save} disabled={saving}>{saving?'Saving…':'Save shipping settings'}</button></div><div className="muted" style={{padding:13,fontSize:10}}>Shiprocket API credentials stay server-side in Vercel environment variables. Never put the API password or token in browser code or GitHub.</div></div></>}
+
+
+function Plan({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
+  const plan=String(store?.plan||'free');
+  const limits:any={free:{name:'FREE',price:'₹0',products:10,categories:1,color:'#15803d'},starter:{name:'STARTER',price:'₹299',products:100,categories:Infinity,color:'#2563eb'},growth:{name:'GROWTH',price:'₹499',products:Infinity,categories:Infinity,color:'#7c3aed'}};
+  const current=limits[plan]||limits.free;
+  const productLimit=current.products===Infinity?'Unlimited':current.products;
+  const productPct=current.products===Infinity?0:Math.min(100,(items.length/current.products)*100);
+  return <div>
+    <div className="pagehead"><div><h1>Plan & billing</h1><p>Your HEPRA Store Builder subscription and usage.</p></div><div className="actions"><a className="btn primary" href="/pricing">View plans →</a></div></div>
+    <div className="plan-dashboard">
+      <div className="current-plan" style={{boxShadow:'7px 7px 0 '+current.color}}>
+        <div className="plan-dashboard-kicker">CURRENT PLAN</div>
+        <div className="plan-dashboard-title"><span style={{background:current.color}}></span>{current.name}</div>
+        <strong>{current.price}</strong><small>{plan==='free'?'/ forever':'/ month'}</small>
+        <p>{plan==='free'?'You are currently using the free plan. Upgrade when you need more products and advanced selling tools.':'Your plan is active. Billing integration can be connected next.'}</p>
+        {plan==='free'&&<a href="/pricing#pricing" className="btn primary">UPGRADE PLAN →</a>}
+      </div>
+      <div className="usage-card">
+        <div className="plan-dashboard-kicker">USAGE</div>
+        <div className="usage-row"><span>Products</span><b>{items.length} / {productLimit}</b></div>
+        <div className="usage-bar"><i style={{width:productPct+'%'}} /></div>
+        <div className="usage-row"><span>Categories</span><b>{cats.length} / {current.categories===Infinity?'Unlimited':current.categories}</b></div>
+        <div className="usage-row"><span>Store</span><b>{store?.slug||'—'}</b></div>
+        <div className="usage-row"><span>Billing status</span><b>{String(store?.subscription_status||'active').toUpperCase()}</b></div>
+      </div>
+    </div>
+    <div className="panel plan-features-panel">
+      <div className="panelhead">PLAN FEATURES <span className="muted">Based on your current tier</span></div>
+      <div className="row"><div className="grow"><b>Storefront</b><div className="muted">Your public store and order management</div></div><span className="pill">Included</span></div>
+      <div className="row"><div className="grow"><b>Products</b><div className="muted">{productLimit} product limit</div></div><span className="pill">{items.length} used</span></div>
+      <div className="row"><div className="grow"><b>Custom domain</b><div className="muted">{plan==='free'?'Available on Starter and Growth':'Included'}</div></div><span className="pill">{plan==='free'?'LOCKED':'READY'}</span></div>
+      <div className="row"><div className="grow"><b>Advanced tools</b><div className="muted">{plan==='growth'?'Analytics · WhatsApp · advanced shipping':'Available on Growth'}</div></div><span className="pill">{plan==='growth'?'INCLUDED':'UPGRADE'}</span></div>
+    </div>
+  </div>
+}
