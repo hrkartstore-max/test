@@ -17,15 +17,15 @@ function money(n:number){return "₹"+Number(n||0).toLocaleString("en-IN",{maxim
 
 export default function Dashboard(){
  const [store,setStore]=useState<any>(null),[products,setProducts]=useState<any[]>([]),[orders,setOrders]=useState<any[]>([]),[customers,setCustomers]=useState<any[]>([]);
- const [loading,setLoading]=useState(true),[error,setError]=useState("");
- useEffect(()=>{let live=true;(async()=>{try{const [s,p,o,c]=await Promise.all([api("/api/store"),api("/api/products"),api("/api/orders"),api("/api/customers")]);if(!live)return;setStore(s);setProducts(Array.isArray(p)?p:(p?.items||[]));setOrders(Array.isArray(o)?o:(o?.orders||[]));setCustomers(Array.isArray(c)?c:(c?.customers||[]));}catch(e:any){if(live)setError(e.message||"Unable to load dashboard data");}finally{if(live)setLoading(false)}})();return()=>{live=false}},[]);
+ const [loading,setLoading]=useState(true),[error,setError]=useState(""),[subscription,setSubscription]=useState<any>(null);
+ useEffect(()=>{let live=true;(async()=>{try{const [s,p,o,c,b]=await Promise.all([api("/api/store"),api("/api/products"),api("/api/orders"),api("/api/customers"),api("/api/subscription")]);if(!live)return;setStore(s);setProducts(Array.isArray(p)?p:(p?.items||[]));setOrders(Array.isArray(o)?o:(o?.orders||[]));setCustomers(Array.isArray(c)?c:(c?.customers||[]));setSubscription(b?.subscription||null);}catch(e:any){if(live)setError(e.message||"Unable to load dashboard data");}finally{if(live)setLoading(false)}})();return()=>{live=false}},[]);
  const revenue=useMemo(()=>orders.reduce((s,o)=>s+Number(o.total||0),0),[orders]);
  const lowStock=products.filter(p=>Number(p.stock||0)<=5).slice(0,5);
  return <div className="app-shell">
   <aside className="sidebar"><Link href="/" className="brand"><span className="brand-mark">H</span> HEPRA</Link>
    <div className="store-switch"><span className="avatar">{(store?.name||"H").slice(0,1).toUpperCase()}</span><div><b>{store?.name||"HEPRA Store"}</b><small>{store?.slug?"hepra.in/store/"+store.slug:"Store setup"}</small></div><ChevronRight size={16}/></div>
    <nav>{nav.map(([n,I,h],i)=><Link className={i===0?"active":""} href={h} key={n}><I size={18}/>{n}</Link>)}</nav>
-   <div className="sidebar-bottom"><div className="plan-box"><small>Current plan</small><b>STARTER</b><span>Manage billing</span></div><Link href="/dashboard/website" className="view-store">Customize site →</Link></div>
+   <div className="sidebar-bottom"><Link href="/dashboard/billing" className="plan-box"><small>Current plan</small><b>{subscription?.planId==="pro"?"🟣 PRO":subscription?.planId==="starter"?"🔵 STARTER":"🟢 FREE"}</b><span>Manage billing →</span></Link><Link href="/dashboard/website" className="view-store">Customize site →</Link></div>
   </aside>
   <section className="main-panel"><header className="dash-header"><div><small>HEPRA STORE</small><h1>Store dashboard</h1></div><div className="header-tools"><div className="profile">{(store?.name||"H").slice(0,1).toUpperCase()}</div></div></header>
    <div className="dashboard-content">
