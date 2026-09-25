@@ -7,10 +7,10 @@ import { supabase } from '../lib/supabase';
 type Item={id:string;name:string;description:string|null;price:number;compare_at_price:number|null;stock:number;category_id:string|null;active:boolean;image_url:string|null};
 type Cat={id:string;name:string;sort_order:number;visible:boolean};
 
-const nav=[['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
+const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
 
 export default function Home(){
-  const [tab,setTab]=useState('Orders');
+  const [tab,setTab]=useState('Dashboard');
   const [items,setItems]=useState<Item[]>([]);
   const [cats,setCats]=useState<Cat[]>([]);
   const [search,setSearch]=useState('');
@@ -99,7 +99,7 @@ export default function Home(){
       <section className="content">
         {error&&<div className="error">{error}<button onClick={()=>setError('')}>×</button></div>}
         <div className="setup"><h2>Finish setting up your store 🚀</h2><p>{items.length>0?'Your catalog is live — keep building your store.':'Add your first product to start selling.'}</p><div className="setupgrid"><div className="setupitem"><b>Store</b><span>{store?.name} · /{store?.slug}</span></div><div className="setupitem"><b>Products</b><span>{items.length} items connected to Supabase</span></div><div className="setupitem"><b>Categories</b><span>{cats.length} storefront categories</span></div><div className="setupitem"><b>Payments</b><span>Configure UPI from Payments</span></div></div></div>
-        {tab==='Orders'&&<Orders store={store}/>}
+        {tab==='Dashboard'&&<Dashboard store={store} items={items} cats={cats}/>}\n        {tab==='Orders'&&<Orders store={store}/>}
         {tab==='Items'&&<Items items={filtered} cats={cats} search={search} setSearch={setSearch} showAdd={showAdd} setShowAdd={setShowAdd} store={store} setItems={setItems} setError={setError} newName={newName} setNewName={setNewName} newPrice={newPrice} setNewPrice={setNewPrice} newStock={newStock} setNewStock={setNewStock} newCat={newCat} setNewCat={setNewCat} addItem={addItem} saving={saving}/>}
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
@@ -391,6 +391,52 @@ function Plan({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
       <div className="row"><div className="grow"><b>Products</b><div className="muted">{productLimit} product limit</div></div><span className="pill">{items.length} used</span></div>
       <div className="row"><div className="grow"><b>Custom domain</b><div className="muted">{plan==='free'?'Available on Starter and Growth':'Included'}</div></div><span className="pill">{plan==='free'?'LOCKED':'READY'}</span></div>
       <div className="row"><div className="grow"><b>Advanced tools</b><div className="muted">{plan==='growth'?'Analytics · WhatsApp · advanced shipping':'Available on Growth'}</div></div><span className="pill">{plan==='growth'?'INCLUDED':'UPGRADE'}</span></div>
+    </div>
+  </div>
+}
+
+function Dashboard({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
+  const [orders,setOrders]=useState<any[]>([]);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{let alive=true;async function load(){if(!store?.id)return;setLoading(true);const {data}=await supabase().from('orders').select('id,customer_name,total,status,created_at,payment_status').eq('store_id',store.id).order('created_at',{ascending:false}).limit(20);if(alive)setOrders(data||[]);setLoading(false)}load();return()=>{alive=false}},[store?.id]);
+  const today=new Date(); today.setHours(0,0,0,0);
+  const todayOrders=orders.filter(o=>new Date(o.created_at)>=today);
+  const revenue=orders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total||0),0);
+  const todayRevenue=todayOrders.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total||0),0);
+  const pending=orders.filter(o=>['new','confirmed','preparing'].includes(o.status)).length;
+  const paid=orders.filter(o=>String(o.payment_status).toLowerCase()==='paid').length;
+  return <div className="dashboard">
+    <div className="dashboard-hero">
+      <div><div className="dashboard-kicker">MERCHANT COMMAND CENTER</div><h1>GOOD TO SEE YOU, {String(store?.name||'MERCHANT').toUpperCase()}</h1><p>Everything happening across your HEPRA store, in one place.</p></div>
+      <div className="dashboard-actions"><a className="btn primary" href={"/store/"+store?.slug} target="_blank" rel="noreferrer">OPEN STORE ↗</a><button className="btn" onClick={()=>location.reload()}>REFRESH</button></div>
+    </div>
+    <div className="dashboard-grid">
+      <div className="dashboard-stat coral"><small>TODAY'S ORDERS</small><strong>{todayOrders.length}</strong><span>{pending} need action</span></div>
+      <div className="dashboard-stat"><small>TODAY'S SALES</small><strong>₹{todayRevenue.toLocaleString('en-IN')}</strong><span>{todayOrders.length?'Live from orders':'No orders yet'}</span></div>
+      <div className="dashboard-stat purple"><small>CATALOG</small><strong>{items.length}</strong><span>{cats.length} categories</span></div>
+      <div className="dashboard-stat"><small>PAID ORDERS</small><strong>{paid}</strong><span>{orders.length?'From recent orders':'Awaiting first order'}</span></div>
+    </div>
+    <div className="dashboard-columns">
+      <div className="panel">
+        <div className="panelhead">RECENT ORDERS <span className="muted">₹{revenue.toLocaleString('en-IN')} recent revenue</span></div>
+        {loading?<div className="empty">Loading dashboard…</div>:orders.length?orders.slice(0,8).map(o=><div className="row" key={o.id}><div className="grow"><b>{o.customer_name||'Customer'}</b><div className="muted">{new Date(o.created_at).toLocaleString('en-IN')}</div></div><b>₹{Number(o.total||0).toLocaleString('en-IN')}</b><span className="pill">{o.status||'new'}</span></div>):<div className="empty"><div className="big">◎</div><b>Your first order will appear here.</b><br/>Share your storefront to start selling.</div>}
+      </div>
+      <div className="dashboard-side">
+        <div className="panel">
+          <div className="panelhead">STORE HEALTH</div>
+          <div className="health-row"><span>Products</span><b>{items.length} / {store?.plan==='free'?10:store?.plan==='starter'?100:'∞'}</b></div>
+          <div className="health-row"><span>Categories</span><b>{cats.length}</b></div>
+          <div className="health-row"><span>Plan</span><b>{String(store?.plan||'free').toUpperCase()}</b></div>
+          <div className="health-row"><span>Payments</span><b>{store?.upi_id?'CONNECTED':'SETUP NEEDED'}</b></div>
+          <div className="health-row"><span>Shipping</span><b>{store?.shipping_enabled?'SHIPROCKET ON':'NOT CONFIGURED'}</b></div>
+        </div>
+        <div className="dashboard-quick">
+          <div className="dashboard-kicker">QUICK ACTIONS</div>
+          <button onClick={()=>location.href='/setup'}>＋ ADD PRODUCT</button>
+          <button onClick={()=>location.href='/pricing'}>↗ VIEW PLANS</button>
+          <a href={"/store/"+store?.slug} target="_blank" rel="noreferrer">◉ VIEW STOREFRONT</a>
+        </div>
+      </div>
     </div>
   </div>
 }
