@@ -310,6 +310,8 @@ app.post("/api/products", requireUser, async (req: AuthRequest, res: Response) =
   } catch (e: any) { res.status(500).json({ message: e.message }); }
 });
 
+app.patch("/api/products/:id", requireUser, async(req,res)=>{try{const store=await getOwnedStore(req as AuthRequest);if(!store)return res.status(404).json({message:"Store not found"});const stock=Number(req.body?.stock);if(!Number.isInteger(stock)||stock<0)return res.status(400).json({message:"Stock must be a non-negative integer"});const sb=tenantStore(req as AuthRequest);const r=await sb.from("items").update({stock}).eq("id",String(req.params.id)).eq("store_id",store.id).select("*").single();if(r.error)throw r.error;res.json(productOut(r.data));}catch(e:any){res.status(500).json({message:e.message});}});
+
 app.delete("/api/products/:id", requireUser, async (req: AuthRequest, res) => {
   try {
     const store = await getOwnedStore(req); if (!store) return res.status(404).json({ message: "Store not found" });
