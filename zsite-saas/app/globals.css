@@ -3,3 +3,64 @@
 /* AI DUDE inspired editorial system */
 .loading{background:#f3efe3;position:relative;overflow:hidden}.loading>div{width:min(430px,88vw);padding:30px 24px;border:1px solid #111722;background:#f9f6ed;box-shadow:8px 8px 0 #f05a3c;text-align:left}.loading>div:before{content:"HEPRA · STORE BUILDER";display:inline-block;font-size:9px;letter-spacing:2px;color:#f05a3c;border:1px solid #111722;padding:5px 7px;margin-bottom:18px}.loading b{display:block;font-family:Impact,"Arial Black",sans-serif;font-size:34px;line-height:.92;letter-spacing:-1px;text-transform:uppercase;color:#111722}.loading b:after{content:".";color:#f05a3c}.loading p{font-size:11px;line-height:1.6;color:#777268;margin-top:12px}.loading:after{content:"LOADING YOUR STORE";position:absolute;bottom:24px;left:24px;font-size:8px;letter-spacing:2px;color:#777268}
 .sidebar{background:#f9f6ed;border-right:1px solid #111722}.brand{border-bottom:1px solid #111722}.logo{background:#f05a3c;color:#111722;border-radius:0;font-family:Impact,"Arial Black",sans-serif}.brandtext{font-family:Impact,"Arial Black",sans-serif;letter-spacing:.5px}.nav button.active{background:#111722;color:#f9f6ed;border-radius:0}.nav button{border-radius:0}.top{background:#f9f6ed;border-bottom:1px solid #111722;color:#777268}.content{max-width:1180px}.setup,.panel,.stat{background:#f9f6ed;border:1px solid #111722;border-radius:0}.setup{box-shadow:5px 5px 0 #f05a3c}.setup h2,.pagehead h1{font-family:Impact,"Arial Black",sans-serif;text-transform:uppercase;letter-spacing:.3px}.setupitem{background:#f3efe3;border:1px solid #bdb5a7}.btn{background:#f9f6ed;border:1px solid #111722;border-radius:0}.btn.primary{background:#111722;color:#f9f6ed;border-color:#111722}.pill{background:#f05a3c;color:#111722;border-radius:0;font-weight:700}.toolbar,.panelhead,.row{border-color:#d8d2c4}.input,.field input,.field select{background:#f9f6ed;border:1px solid #111722;border-radius:0}.cards{gap:12px}.stat strong{font-family:Impact,"Arial Black",sans-serif;font-size:22px}.pagehead{margin:16px 0}.pagehead p{letter-spacing:.3px}.live{background:#111722;color:#f9f6ed;border-radius:0}.mobilebar{background:#f9f6ed;border-color:#111722}.error{border-radius:0;border-color:#f05a3c;background:#fce9e3;color:#a92f1b}.iconbtn{color:#f05a3c}
+
+/* HEPRA public pricing */
+.pricing-page{min-height:100vh;background:#f3efe3;color:#111722}
+.pricing-nav{height:72px;border-bottom:1px solid #111722;display:flex;align-items:center;justify-content:space-between;padding:0 5vw;position:sticky;top:0;background:#f3efe3ee;backdrop-filter:blur(10px);z-index:30}
+.pricing-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:#111722;font:900 15px Arial,sans-serif;letter-spacing:1px}
+.pricing-logo span{width:34px;height:34px;background:#f05a3c;display:grid;place-items:center;font:900 19px Impact,"Arial Black",sans-serif}
+.pricing-navlinks{display:flex;align-items:center;gap:25px}
+.pricing-navlinks a{color:#111722;text-decoration:none;font-size:10px;font-weight:800;letter-spacing:1px}
+.pricing-nav-cta{background:#111722!important;color:#f9f6ed!important;padding:11px 14px;display:flex;align-items:center;gap:7px}
+.pricing-hero{padding:90px 7vw 80px;max-width:1180px;margin:auto}
+.pricing-kicker{font-size:9px;font-weight:900;letter-spacing:2px;color:#f05a3c;margin-bottom:18px}
+.pricing-hero h1,.pricing-heading h2,.pricing-bottom h2{font:900 clamp(54px,9vw,112px)/.82 Impact,"Arial Black",sans-serif;letter-spacing:-2px;margin:0;text-transform:uppercase}
+.pricing-hero h1 em,.pricing-bottom h2 em{font-style:normal;color:#f05a3c}
+.pricing-hero p{max-width:580px;font-size:15px;line-height:1.65;color:#555047;margin:30px 0}
+.pricing-hero-actions{display:flex;align-items:center;gap:24px}
+.pricing-main-cta{background:#f05a3c;color:#111722;text-decoration:none;border:1px solid #111722;padding:14px 18px;font-size:10px;font-weight:900;display:flex;align-items:center;gap:8px;box-shadow:5px 5px 0 #111722}
+.pricing-text-link{font-size:10px;font-weight:900;color:#111722;text-decoration:none;letter-spacing:1px}
+.pricing-strip{border-top:1px solid #111722;border-bottom:1px solid #111722;display:grid;grid-template-columns:repeat(4,1fr)}
+.pricing-strip div{padding:20px 5vw;border-right:1px solid #111722;min-height:100px}
+.pricing-strip div:last-child{border-right:0}
+.pricing-strip b{font-size:9px;color:#f05a3c;display:block;margin-bottom:15px}
+.pricing-strip span{display:block;font:900 19px Impact,"Arial Black",sans-serif}
+.pricing-strip small{font-size:9px;color:#777268}
+.pricing-section{padding:80px 5vw 100px;max-width:1320px;margin:auto}
+.pricing-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:30px}
+.pricing-heading h2{font-size:clamp(50px,7vw,82px)}
+.billing-toggle{border:1px solid #111722;display:flex;background:#f9f6ed}
+.billing-toggle button{border:0;background:transparent;padding:10px 13px;font-size:9px;font-weight:900;letter-spacing:.7px}
+.billing-toggle button.active{background:#111722;color:#fff}
+.billing-toggle span{background:#f05a3c;color:#111722;padding:3px 4px;margin-left:4px}
+.annual-note{border:1px solid #111722;background:#f05a3c;padding:10px 13px;font-size:9px;font-weight:900;margin-bottom:18px}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.plan-card{background:#f9f6ed;border:1px solid #111722;padding:25px;position:relative;box-shadow:7px 7px 0 #d6cfc1}
+.plan-card.featured{background:#e8e0d2;box-shadow:9px 9px 0 #7c3aed;transform:translateY(-10px)}
+.featured-label{position:absolute;right:0;top:0;background:#7c3aed;color:#fff;padding:8px 10px;font-size:8px;font-weight:900;display:flex;gap:5px;align-items:center}
+.plan-top{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:900;letter-spacing:1.5px}
+.plan-dot{width:9px;height:9px;display:inline-block}
+.plan-price{display:flex;align-items:end;gap:7px;margin:32px 0 8px}
+.plan-price strong{font:900 50px/.9 Impact,"Arial Black",sans-serif;letter-spacing:-1px}
+.plan-price span{font-size:9px;color:#777268;margin-bottom:4px}
+.plan-note{font-size:10px;color:#5f5a51;line-height:1.55;min-height:34px}
+.plan-cta{margin-top:20px;width:100%;padding:12px;background:#111722;color:#fff;text-decoration:none;font-size:9px;font-weight:900;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:7px}
+.plan-card.featured .plan-cta{background:#7c3aed}
+.plan-divider{height:1px;background:#bdb5a7;margin:22px 0 15px}
+.plan-card ul{padding:0;margin:0;list-style:none;display:grid;gap:10px}
+.plan-card li{display:flex;gap:8px;align-items:flex-start;font-size:10px;color:#34312c;line-height:1.35}
+.plan-card li svg{flex:0 0 auto;color:#15803d;margin-top:1px}
+.pricing-bottom{border-top:1px solid #111722;padding:80px 7vw;display:grid;grid-template-columns:1fr 1fr;gap:8vw;align-items:end}
+.pricing-bottom h2{font-size:clamp(50px,7vw,88px)}
+.pricing-bottom p{font-size:14px;line-height:1.8;color:#5c574f;max-width:520px}
+.pricing-footer{border-top:1px solid #111722;padding:22px 5vw;display:flex;justify-content:space-between;align-items:center;font-size:9px;letter-spacing:1px}
+.pricing-footer strong{font-weight:900}.pricing-footer span{color:#777268}.pricing-footer a{color:#111722;text-decoration:none;font-weight:900}
+@media(max-width:760px){
+.pricing-nav{height:62px;padding:0 16px}.pricing-navlinks{gap:10px}.pricing-navlinks a:not(.pricing-nav-cta){display:none}.pricing-nav-cta{padding:9px 10px}
+.pricing-hero{padding:65px 22px 60px}.pricing-hero h1{font-size:62px}.pricing-hero p{font-size:13px}
+.pricing-strip{grid-template-columns:repeat(2,1fr)}.pricing-strip div{padding:15px 18px;min-height:90px}.pricing-strip div:nth-child(2){border-right:0}.pricing-strip div:nth-child(-n+2){border-bottom:1px solid #111722}
+.pricing-section{padding:55px 16px 70px}.pricing-heading{display:block}.pricing-heading h2{font-size:56px}.billing-toggle{margin-top:25px;width:max-content}
+.pricing-grid{grid-template-columns:1fr;gap:25px}.plan-card.featured{transform:none}.plan-price strong{font-size:55px}
+.pricing-bottom{grid-template-columns:1fr;padding:60px 22px;gap:35px}.pricing-bottom h2{font-size:56px}.pricing-bottom p{font-size:13px}
+.pricing-footer{padding:18px 16px;gap:10px;flex-wrap:wrap}.pricing-footer span{display:none}
+}
