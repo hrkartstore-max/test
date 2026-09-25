@@ -654,9 +654,23 @@ async function createRazorpayOrder(amountInRupees: number, receipt: string, note
   return data;
 }
 
-fs.mkdirSync(path.join(process.cwd(),"uploads"),{recursive:true});
-async function start(){
-  try{if(process.env.MONGODB_URI){await mongoose.connect(process.env.MONGODB_URI);console.log("MongoDB connected");}else console.log("MONGODB_URI not set; API running without database connection.");app.listen(port,()=>console.log(`HEPRA API running on http://localhost:${port}`));}
-  catch(error){console.error("Startup error",error);process.exit(1);}
+if (!process.env.VERCEL) {
+  fs.mkdirSync(path.join(process.cwd(),"uploads"),{recursive:true});
+  async function start(){
+    try{
+      if(process.env.MONGODB_URI){
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log("MongoDB connected");
+      } else {
+        console.log("MONGODB_URI not set; API running without database connection.");
+      }
+      app.listen(port,()=>console.log(`HEPRA API running on http://localhost:${port}`));
+    } catch(error){
+      console.error("Startup error",error);
+      process.exit(1);
+    }
+  }
+  start();
 }
-start();
+
+export default app;
