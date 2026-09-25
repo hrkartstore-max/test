@@ -164,6 +164,28 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-testimonials">
+        <div className="ref-container">
+          <div className="ref-section-head centered">
+            <div><div className="ref-kicker">MERCHANT STORIES</div><h2>Made for businesses<br/><span>that are growing.</span></h2></div>
+            <p>From first-time sellers to established local brands, HEPRA keeps online selling simple.</p>
+          </div>
+          <div className="ref-testimonial-grid">
+            {[
+              ["RK","Fashion Store Owner","“I wanted a simple website without spending a lot on development. HEPRA gives me the store, products and orders in one place.”"],
+              ["AS","Restaurant Owner","“WhatsApp + COD makes it much easier for my customers to order. The dashboard keeps everything organized.”"],
+              ["MP","Local Business Owner","“I can manage my products and update my store myself. I don't need to call a developer for every small change.”"]
+            ].map(([initials,role,quote]) => (
+              <article className="ref-testimonial" key={role}>
+                <div className="ref-stars">★★★★★</div>
+                <p>{quote}</p>
+                <div className="ref-person"><span>{initials}</span><div><strong>{role}</strong><small>HEPRA merchant</small></div></div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="ref-section ref-features">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">THE TOOLKIT</div><h2>Everything your<br/><span>business needs.</span></h2></div><p>One simple platform for your storefront, selling tools and daily operations.</p></div>
