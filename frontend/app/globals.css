@@ -225,3 +225,25 @@
 .ref-final-actions{display:flex;flex-direction:column;gap:9px;min-width:220px}
 .ref-final-actions .ref-outline-btn{border-color:#111318;color:#111318;background:transparent}
 @media(max-width:700px){.ref-final-cta-box{padding:40px 25px;display:block}.ref-final-actions{margin-top:30px}.ref-final-cta-box h2{font-size:48px}}
+
+
+/* Mobile navigation */
+.ref-mobile-menu{display:none;position:relative}
+.ref-mobile-menu summary{list-style:none;cursor:pointer;width:40px;height:40px;border:1px solid #d9d2c6;background:#fbf8f1;display:grid;place-content:center;gap:4px}
+.ref-mobile-menu summary::-webkit-details-marker{display:none}
+.ref-mobile-menu summary span{display:block;width:16px;height:1.5px;background:#111318}
+.ref-mobile-menu-panel{position:absolute;right:0;top:48px;width:min(280px,calc(100vw - 28px));background:#fff;border:1px solid var(--r-line);box-shadow:0 20px 45px #11131822;padding:8px;z-index:50}
+.ref-mobile-menu-panel a{display:flex;align-items:center;justify-content:space-between;padding:14px 12px;font-size:11px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #eee8df}
+.ref-mobile-menu-panel a:last-child{border-bottom:0}
+.ref-mobile-menu-panel a:hover{background:#f4efe5}
+.ref-mobile-menu-cta{background:#111318!important;color:#fff!important;margin-top:6px;border:0!important}
+@media(max-width:900px){
+  .ref-mobile-menu{display:block}
+}
+@media(min-width:901px){
+  .ref-mobile-menu{display:none!important}
+}
+@media(max-width:600px){
+  .ref-nav-actions .ref-login{display:none}
+  .ref-nav-actions{margin-left:auto}
+}
