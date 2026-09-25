@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ShoppingCart, Package, Tags, Percent, CreditCard, BarChart3, Store, Settings, Truck, Plus, Search, Trash2, LogOut } from 'lucide-react';
+import { ShoppingCart, Package, Tags, Percent, CreditCard, BarChart3, Store, Settings, Truck, Plus, Search, Trash2, LogOut, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 type Item={id:string;name:string;description:string|null;price:number;compare_at_price:number|null;stock:number;category_id:string|null;active:boolean;image_url:string|null};
 type Cat={id:string;name:string;sort_order:number;visible:boolean};
 
-const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Customers',Store],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['zPOS',Store],['zStock',Package]] as const;
+const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Customers',Store],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['WhatsApp',MessageCircle],['zPOS',Store],['zStock',Package]] as const;
 
 export default function Home(){
   const [tab,setTab]=useState('Dashboard');
@@ -104,7 +104,7 @@ export default function Home(){
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
         {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>} {tab==='Plan'&&<Plan store={store} items={items} cats={cats}/>}
-        {tab==='Reports'&&<Reports store={store} items={items}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
+        {tab==='Reports'&&<Reports store={store} items={items}/>}\n      {tab==='WhatsApp'&&<WhatsApp store={store} setStore={setStore}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
       </section>
       <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
     </main>
