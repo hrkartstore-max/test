@@ -272,7 +272,7 @@ app.patch("/api/orders/:id/status",auth,async(req:AuthRequest,res)=>{
 });
 
 app.get("/api/public/stores/:slug",async(req,res)=>{
-  const store=await Store.findOne({slug:String(req.params.slug),published:true}).lean(); if(!store)return res.status(404).json({message:"Store not found"});
+  const store: any=await Store.findOne({slug:String(req.params.slug),published:true}).lean(); if(!store)return res.status(404).json({message:"Store not found"});
   const products=await Product.find({tenantId:store.tenantId,status:"published"}).sort({createdAt:-1}).lean();res.json({store,products});
 });
 
@@ -474,9 +474,9 @@ app.delete("/api/media/:id",auth,async(req:AuthRequest,res:Response)=>{
 });
 const ALL_STAFF_PERMISSIONS=["products.read","products.write","orders.read","orders.write","customers.read","pages.write","coupons.write","domains.write","media.write","staff.manage","billing.read"];
 app.get("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
- const staff=await User.findOne({_id:String(req.params.id),tenantId:tenant(req),role:"STAFF"}).select("-passwordHash").lean();
+ const staff: any=await User.findOne({_id:String(req.params.id),tenantId:tenant(req),role:"STAFF"}).select("-passwordHash").lean();
  if(!staff)return res.status(404).json({message:"Staff member not found"});
- const saved=await StaffPermission.findOne({tenantId:tenant(req),userId:String(staff._id)}).lean();
+ const saved: any=await StaffPermission.findOne({tenantId:tenant(req),userId:String(staff._id)}).lean();
  res.json({staff,permissions:saved?.permissions||[],available:ALL_STAFF_PERMISSIONS});
 });
 app.put("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
@@ -491,7 +491,7 @@ app.put("/api/staff/:id/permissions",auth,async(req:AuthRequest,res:Response)=>{
 app.get("/api/storefront/config",async(req:Request,res:Response)=>{
  const host=String(req.headers.host||"").split(":")[0].toLowerCase();
  const connectedDomain=await Domain.findOne({domain:host,status:"connected"}).lean();
-  const store=await Store.findOne({
+  const store: any=await Store.findOne({
     $or:[
       {customDomain:host},
       {subdomain:host.split(".")[0]},
