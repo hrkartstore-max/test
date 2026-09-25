@@ -20,3 +20,51 @@ create policy "owners manage order items" on public.order_items for all using (o
 create index if not exists items_store_idx on public.items(store_id);
 create index if not exists orders_store_idx on public.orders(store_id);
 create index if not exists categories_store_idx on public.categories(store_id);
+
+-- Database-level enforcement for the public plan limits.
+create or replace function public.enforce_store_plan_limits()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_plan text;
+  product_count bigint;
+  category_count bigint;
+begin
+  select plan into current_plan from public.stores where id = new.store_id for update;
+  if current_plan is null then
+    raise exception 'Store plan could not be determined';
+  end if;
+  if tg_table_name = 'items' then
+    if current_plan = 'free' then
+      select count(*) into product_count from public.items where store_id = new.store_id;
+      if product_count >= 10 then
+        raise exception 'FREE plan allows up to 10 products. Upgrade your plan to add more.';
+      end if;
+    elsif current_plan = 'starter' then
+      select count(*) into product_count from public.items where store_id = new.store_id;
+      if product_count >= 100 then
+        raise exception 'STARTER plan allows up to 100 products. Upgrade your plan to add more.';
+      end if;
+    end if;
+  elsif tg_table_name = 'categories' then
+    if current_plan = 'free' then
+      select count(*) into category_count from public.categories where store_id = new.store_id;
+      if category_count >= 1 then
+        raise exception 'FREE plan allows 1 category. Upgrade to STARTER for unlimited categories.';
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_store_product_limit on public.items;
+create trigger enforce_store_product_limit before insert on public.items for each row execute function public.enforce_store_plan_limits();
+
+drop trigger if exists enforce_store_category_limit on public.categories;
+create trigger enforce_store_category_limit before insert on public.categories for each row execute function public.enforce_store_plan_limits();
+
+revoke all on function public.enforce_store_plan_limits() from public, anon, authenticated;
