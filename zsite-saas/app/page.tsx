@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 type Item={id:string;name:string;description:string|null;price:number;compare_at_price:number|null;stock:number;category_id:string|null;active:boolean;image_url:string|null};
 type Cat={id:string;name:string;sort_order:number;visible:boolean};
 
-const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Customers',Store],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['WhatsApp',MessageCircle],['Notification Logs',MessageCircle],['zPOS',Store],['zStock',Package]] as const;
+const nav=[['Dashboard',BarChart3],['Orders',ShoppingCart],['Customers',Store],['Items',Package],['Categories',Tags],['Discounts',Percent],['Payments',CreditCard],['Shipping',Truck],['Plan',CreditCard],['Reports',BarChart3],['WhatsApp',MessageCircle],['Notification Logs',MessageCircle],['Store Customizer',Settings],['zPOS',Store],['zStock',Package]] as const;
 
 export default function Home(){
   const [tab,setTab]=useState('Dashboard');
@@ -104,7 +104,7 @@ export default function Home(){
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
         {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>} {tab==='Plan'&&<Plan store={store} items={items} cats={cats}/>}
-        {tab==='Reports'&&<Reports store={store} items={items}/>}\n      {tab==='WhatsApp'&&<WhatsApp store={store} setStore={setStore}/>}\n      {tab==='Notification Logs'&&<NotificationLogs store={store}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
+        {tab==='Reports'&&<Reports store={store} items={items}/>}\n      {tab==='WhatsApp'&&<WhatsApp store={store} setStore={setStore}/>}\n      {tab==='Notification Logs'&&<NotificationLogs store={store}/>}\n      {tab==='Store Customizer'&&<StoreCustomizer store={store} setStore={setStore}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
       </section>
       <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
     </main>
@@ -439,6 +439,17 @@ function Dashboard({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
       </div>
     </div>
   </div>
+}
+
+function StoreCustomizer({store,setStore}:{store:any;setStore:(v:any)=>void}){
+ const [form,setForm]=useState<any>({theme_primary:store?.theme_primary||'#f05a3c',theme_background:store?.theme_background||'#f3efe3',theme_text:store?.theme_text||'#111722',hero_title:store?.hero_title||'Shop your everyday favourites.',hero_subtitle:store?.hero_subtitle||'Simple shopping with direct ordering.',announcement_text:store?.announcement_text||''});
+ const [saving,setSaving]=useState(false);const [saved,setSaved]=useState('');
+ async function save(){setSaving(true);const {data,error}=await supabase().from('stores').update(form).eq('id',store.id).select().single();if(error)setSaved(error.message);else{setStore(data);setSaved('Store customization saved');}setSaving(false)}
+ return <div className="customizer"><div className="pagehead"><div><h1>Store Customizer</h1><p>Customize your storefront brand, hero and announcement without code.</p></div><button className="btn primary" onClick={save} disabled={saving}>{saving?'Saving…':'Publish changes'}</button></div>
+ <div className="custom-grid"><div className="panel"><div className="panelhead">BRAND & COLORS</div><div className="custom-fields"><div className="field"><label>Primary color</label><div className="color-input"><input type="color" value={form.theme_primary} onChange={e=>setForm({...form,theme_primary:e.target.value})}/><input value={form.theme_primary} onChange={e=>setForm({...form,theme_primary:e.target.value})}/></div></div><div className="field"><label>Store background</label><div className="color-input"><input type="color" value={form.theme_background} onChange={e=>setForm({...form,theme_background:e.target.value})}/><input value={form.theme_background} onChange={e=>setForm({...form,theme_background:e.target.value})}/></div></div><div className="field"><label>Text color</label><div className="color-input"><input type="color" value={form.theme_text} onChange={e=>setForm({...form,theme_text:e.target.value})}/><input value={form.theme_text} onChange={e=>setForm({...form,theme_text:e.target.value})}/></div></div></div></div>
+ <div className="panel"><div className="panelhead">HERO CONTENT</div><div className="field"><label>Hero title</label><input value={form.hero_title} onChange={e=>setForm({...form,hero_title:e.target.value})}/></div><div className="field"><label>Hero subtitle</label><textarea value={form.hero_subtitle} onChange={e=>setForm({...form,hero_subtitle:e.target.value})}/></div><div className="field"><label>Announcement bar</label><input value={form.announcement_text} onChange={e=>setForm({...form,announcement_text:e.target.value})} placeholder="Free shipping on orders above ₹999"/></div></div></div>
+ <div className="panel custom-preview"><div className="panelhead">LIVE PREVIEW</div><div className="preview-store" style={{background:form.theme_background,color:form.theme_text}}>{form.announcement_text&&<div className="preview-announcement" style={{background:form.theme_primary}}>{form.announcement_text}</div>}<div className="preview-nav"><b>{store?.name||'My Store'}</b><span>Cart</span></div><div className="preview-hero"><small>WELCOME TO {(store?.name||'MY STORE').toUpperCase()}</small><h2>{form.hero_title}</h2><p>{form.hero_subtitle}</p><button style={{background:form.theme_primary,color:form.theme_text}}>Shop now</button></div></div></div>
+ {saved&&<div className="wa-saved">{saved}</div>}</div>
 }
 
 function Reports({store,items}:{store:any;items:Item[]}){
