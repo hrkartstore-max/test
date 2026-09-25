@@ -18,10 +18,14 @@ export async function POST(req:NextRequest){
   if(!sub)return NextResponse.json({ok:true});
   const status=String(details.subscription_status||'').toUpperCase();
   const active=status==='ACTIVE'||type==='SUBSCRIPTION_PAYMENT_SUCCESS';
-  const inactive=['ON_HOLD','CUSTOMER_CANCELLED','CUSTOMER_PAUSED','EXPIRED','CANCELLED','CARD_EXPIRED','LINK_EXPIRED'].includes(status);
+  const paymentFailed=['SUBSCRIPTION_PAYMENT_FAILED','SUBSCRIPTION_PAYMENT_CANCELLED'].includes(type);
+  const authFailed=type==='SUBSCRIPTION_AUTH_STATUS' && ['FAILED','CANCELLED'].includes(String(data.authorization_details?.authorization_status||'').toUpperCase());
+  const inactive=['CUSTOMER_CANCELLED','CUSTOMER_PAUSED','EXPIRED','CANCELLED','CARD_EXPIRED','LINK_EXPIRED'].includes(status);
+  const pastDue=status==='ON_HOLD'||paymentFailed;
   await db.from('store_subscriptions').update({status:details.subscription_status||sub.status,current_period_end:details.subscription_expiry_time||sub.current_period_end,updated_at:new Date().toISOString()}).eq('id',sub.id);
   if(active)await db.from('stores').update({plan:sub.plan,billing_interval:sub.billing_interval,subscription_status:'active'}).eq('id',sub.store_id);
-  else if(inactive)await db.from('stores').update({plan:'free',billing_interval:'monthly',subscription_status:status==='ON_HOLD'?'past_due':'canceled'}).eq('id',sub.store_id);
+  else if(pastDue)await db.from('stores').update({subscription_status:'past_due'}).eq('id',sub.store_id);
+  else if(inactive)await db.from('stores').update({plan:'free',billing_interval:'monthly',subscription_status:authFailed?'past_due':'canceled'}).eq('id',sub.store_id);
   return NextResponse.json({ok:true});
  }catch(e:any){return NextResponse.json({error:e?.message||'Webhook error'},{status:500});}
 }
