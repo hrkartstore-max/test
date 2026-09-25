@@ -135,3 +135,7 @@
 
 /* V15 storefront navigation */
 .store-header{position:relative}.store-nav{display:flex;gap:18px;align-items:center;margin:0 auto}.store-nav a{color:inherit;text-decoration:none;font-size:12px;font-weight:800}.store-nav a:hover{text-decoration:underline}.header-centered .store-nav{position:absolute;bottom:-38px;left:50%;transform:translateX(-50%)}@media(max-width:700px){.store-nav{display:none}}
+
+
+/* V16 mobile navigation builder */
+.v16-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.v16-controls .toggle-field{min-height:42px}@media(max-width:700px){.v16-controls{grid-template-columns:1fr 1fr}}
