@@ -34,3 +34,30 @@
 .ref-cta{padding:85px 0;background:var(--r-orange);color:#fff}.ref-cta .ref-kicker{color:#ffd6ce}.ref-cta h2{font-family:"Arial Black",Inter,sans-serif;text-transform:uppercase;font-size:clamp(42px,6vw,72px);line-height:.9;letter-spacing:-.07em;margin:14px 0 0}.ref-cta h2 span{color:#111318}.ref-cta-inner{display:flex;justify-content:space-between;align-items:end;gap:30px}.ref-footer{background:#111318;color:#fff;padding:58px 0 20px}.ref-footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}.ref-footer-grid>div{display:flex;flex-direction:column;gap:10px}.ref-footer-grid p{color:#777;font-size:12px}.ref-footer-grid b{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#999;margin-bottom:5px}.ref-footer-grid a:not(.ref-brand){font-size:11px;color:#b5b1ab}.ref-footer-bottom{border-top:1px solid #303136;margin-top:45px;padding-top:18px;display:flex;justify-content:space-between;color:#666;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
 @media(max-width:900px){.ref-nav nav{display:none}.ref-hero-grid{grid-template-columns:1fr;gap:15px}.ref-browser-wrap{padding-top:10px}.ref-demo-grid{grid-template-columns:repeat(2,1fr)}.ref-feature-grid{grid-template-columns:repeat(2,1fr)}.ref-steps{grid-template-columns:repeat(2,1fr)}.ref-step:nth-child(3){border-left:1px solid #cfc7ba}.ref-footer-grid{grid-template-columns:1fr 1fr}.ref-cta-inner{align-items:flex-start;flex-direction:column}}
 @media(max-width:600px){.ref-container{width:calc(100% - 28px)}.ref-nav{height:64px}.ref-nav-actions{gap:8px}.ref-black-btn{padding:10px 11px}.ref-hero{padding-top:48px}.ref-hero h1{font-size:49px}.ref-hero-copy>p{font-size:14px}.ref-actions{flex-direction:column}.ref-proof{flex-wrap:wrap;gap:10px 16px}.ref-browser-wrap{padding-bottom:30px}.ref-browser{box-shadow:9px 13px 0 #e3dbcd,0 22px 50px #302c241c;transform:none}.ref-dashboard{min-height:295px;grid-template-columns:72px 1fr}.ref-dashboard aside{padding:12px 7px;gap:10px}.ref-dashboard aside strong{font-size:7px}.ref-dashboard aside small{font-size:6px}.ref-dash-main{padding:11px}.ref-dash-head h3{font-size:12px}.ref-stat-row{gap:4px}.ref-stat-row>div{padding:7px}.ref-stat-row b{font-size:10px}.ref-chart{height:135px;padding:8px}.ref-bars{height:95px}.ref-marquee{font-size:7px}.ref-section{padding:70px 0}.ref-section-head{display:block;margin-bottom:32px}.ref-section-head>p{margin-top:20px}.ref-section-head h2{font-size:45px}.ref-demo-grid{grid-template-columns:1fr 1fr;gap:9px}.ref-demo-art{height:135px}.ref-demo-art strong{font-size:43px}.ref-demo-body{display:block;padding:10px;min-height:118px}.ref-demo-body b{font-size:11px}.ref-demo-body span{font-size:8px}.ref-demo-actions{margin-top:9px}.ref-small-btn,.ref-small-black{font-size:7px;padding:7px 6px}.ref-feature-grid{grid-template-columns:1fr 1fr}.ref-feature-card{min-height:190px;padding:14px}.ref-feature-card h3{font-size:13px}.ref-feature-card p{font-size:10px}.ref-steps{grid-template-columns:1fr 1fr}.ref-step{min-height:180px;padding:18px 12px}.ref-step h3{font-size:17px}.ref-cta{padding:65px 0}.ref-cta h2{font-size:47px}.ref-footer-grid{grid-template-columns:1fr 1fr;gap:30px}.ref-footer-bottom{display:grid;gap:7px}.ref-nav .ref-brand{font-size:16px}}
+
+/* HEPRA pricing — FREE / STARTER / PRO */
+.ref-pricing{background:#fbf8f1}
+.ref-pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:stretch}
+.ref-price-card{position:relative;background:#fff;border:1px solid var(--r-line);padding:28px 24px 22px;min-height:470px;display:flex;flex-direction:column}
+.ref-price-featured{border:2px solid var(--r-ink);transform:translateY(-8px)}
+.ref-price-pro{background:#111318;color:#fff;border-color:#111318}
+.ref-plan-top{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:950;letter-spacing:.14em}
+.ref-plan-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.ref-plan-dot.free{background:#777}
+.ref-plan-dot.starter{background:#5b35d5}
+.ref-plan-dot.pro{background:var(--r-orange)}
+.ref-plan-badge{position:absolute;top:14px;right:14px;background:var(--r-orange);color:#fff;padding:6px 8px;font-size:7px;font-weight:950;letter-spacing:.12em}
+.ref-plan-copy{font-size:11px;line-height:1.55;color:#777;max-width:260px;min-height:36px;margin:22px 0 0}
+.ref-price-pro .ref-plan-copy{color:#aaa}
+.ref-price{font-family:"Arial Black",Inter,sans-serif;font-size:44px;letter-spacing:-.07em;margin:22px 0 25px}
+.ref-price small{font-family:Inter,ui-sans-serif,sans-serif;font-size:10px;letter-spacing:0;color:#999;font-weight:600}
+.ref-price-card ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:11px}
+.ref-price-card li{display:flex;align-items:center;gap:8px;font-size:10px;color:#444}
+.ref-price-card li svg{color:var(--r-orange);flex:none}
+.ref-price-pro li{color:#ddd}
+.ref-plan-btn{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 14px;font-size:9px;font-weight:950;text-transform:uppercase;letter-spacing:.06em;border-radius:2px}
+.ref-plan-btn.light{background:#eee9df;color:#111318}
+.ref-plan-btn.dark{background:#111318;color:#fff}
+.ref-price-pro .ref-plan-btn.dark{background:var(--r-orange)}
+@media(max-width:900px){.ref-pricing-grid{grid-template-columns:1fr}.ref-price-featured{transform:none}}
+@media(max-width:600px){.ref-price-card{min-height:auto;padding:24px 20px}.ref-price{font-size:40px;margin:18px 0 22px}.ref-price-featured{order:-1}}
