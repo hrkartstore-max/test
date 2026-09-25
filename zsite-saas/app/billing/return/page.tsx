@@ -1,6 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {CheckCircle2,Clock3,XCircle} from 'lucide-react';
+import {supabase} from '../../lib/supabase';
 
 export default function BillingReturn(){
  const [status,setStatus]=useState('checking'),[message,setMessage]=useState('');
@@ -9,8 +10,8 @@ export default function BillingReturn(){
    if(!id){setStatus('failed');setMessage('Missing subscription ID');return;}
    const run=async()=>{
      try{
-       const session=await fetch('/api/subscriptions/session').then(r=>r.json());
-       if(!session.access_token){setStatus('failed');setMessage('Please sign in again.');return;}
+       const {data:{session}}=await supabase().auth.getSession();
+       if(!session){setStatus('failed');setMessage('Please sign in again.');return;}
        const r=await fetch('/api/subscriptions/status',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({subscription_id:id})});
        const d=await r.json();if(!r.ok)throw new Error(d.error||'Unable to verify subscription');
        setStatus(d.status);setMessage(d.message||'');
