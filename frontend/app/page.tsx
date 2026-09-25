@@ -285,9 +285,9 @@ export default function Home() {
 
             <div className="ref-pricing-actions">
               <div></div>
-              <Link href="/register" className="ref-plan-btn light">Start free <ArrowRight size={14}/></Link>
-              <Link href="/register" className="ref-plan-btn dark">Start Starter <ArrowRight size={14}/></Link>
-              <Link href="/register" className="ref-plan-btn dark">Start Pro <ArrowRight size={14}/></Link>
+              <Link href="/register?plan=free" className="ref-plan-btn light">Start free <ArrowRight size={14}/></Link>
+              <Link href="/register?plan=starter" className="ref-plan-btn dark">Start Starter <ArrowRight size={14}/></Link>
+              <Link href="/register?plan=pro" className="ref-plan-btn dark">Start Pro <ArrowRight size={14}/></Link>
             </div>
           </div>
         </div>
