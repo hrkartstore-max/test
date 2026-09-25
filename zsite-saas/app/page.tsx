@@ -56,6 +56,8 @@ export default function Home(){
 
   async function addItem(){
     if(!store||!newName||!newPrice){setError('Enter item name and price.');return;}
+    const productLimit=store?.plan==='growth'?Infinity:store?.plan==='starter'?100:10;
+    if(items.length>=productLimit){setError(`Your ${String(store?.plan||'free').toUpperCase()} plan allows ${productLimit===Infinity?'unlimited':productLimit} products. Upgrade your plan to add more.`);return;}
     setSaving(true);setError('');
     const client=supabase();
     const {data,error}=await client.from('items').insert({store_id:store.id,name:newName,price:Number(newPrice),stock:Number(newStock)||0,category_id:newCat||null,active:true}).select().single();
@@ -65,6 +67,8 @@ export default function Home(){
 
   async function addCategory(name:string){
     if(!store||!name.trim())return;
+    const categoryLimit=store?.plan==='free'?1:Infinity;
+    if(cats.length>=categoryLimit){setError('FREE plan includes 1 category. Upgrade to Starter for unlimited categories.');return;}
     const {data,error}=await supabase().from('categories').insert({store_id:store.id,name:name.trim(),sort_order:cats.length*10,visible:true}).select().single();
     if(error)setError(error.message);else{setCats(v=>[...v,data]);setNewCat(data.id);}
   }
@@ -91,7 +95,7 @@ export default function Home(){
       <div className="footer"><div className="live">● Taking orders</div><button className="nav" style={{border:0,background:'transparent',padding:0}} onClick={signOut}><LogOut size={13}/><span className="hide-mobile">Sign out</span></button></div>
     </aside>
     <main className="main">
-      <div className="top"><span>⌂ / {tab}</span><span>{store?.name||'My Store'}　↗</span></div>
+      <div className="top"><span>⌂ / {tab}</span><span>{store?.name||'My Store'} · <b style={{textTransform:'uppercase'}}>{store?.plan||'free'}</b>　↗</span></div>
       <section className="content">
         {error&&<div className="error">{error}<button onClick={()=>setError('')}>×</button></div>}
         <div className="setup"><h2>Finish setting up your store 🚀</h2><p>{items.length>0?'Your catalog is live — keep building your store.':'Add your first product to start selling.'}</p><div className="setupgrid"><div className="setupitem"><b>Store</b><span>{store?.name} · /{store?.slug}</span></div><div className="setupitem"><b>Products</b><span>{items.length} items connected to Supabase</span></div><div className="setupitem"><b>Categories</b><span>{cats.length} storefront categories</span></div><div className="setupitem"><b>Payments</b><span>Configure UPI from Payments</span></div></div></div>
