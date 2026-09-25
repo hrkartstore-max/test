@@ -136,6 +136,34 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-trust">
+        <div className="ref-container">
+          <div className="ref-trust-top">
+            <div>
+              <div className="ref-kicker">WHY HEPRA</div>
+              <h2>Built to help<br/><span>you sell.</span></h2>
+            </div>
+            <p>From your first product to your next thousand orders, HEPRA keeps the tools you need in one place.</p>
+          </div>
+          <div className="ref-trust-stats">
+            <div><strong>24/7</strong><span>Store access</span></div>
+            <div><strong>UPI</strong><span>India-ready payments</span></div>
+            <div><strong>COD</strong><span>Built-in checkout</span></div>
+            <div><strong>1</strong><span>Simple dashboard</span></div>
+          </div>
+          <div className="ref-trust-grid">
+            {[
+              ["01","SELL ANYWHERE","Your storefront works across mobile, tablet and desktop."],
+              ["02","OWN YOUR BRAND","Use your logo, colours, domain and content."],
+              ["03","RUN EVERYTHING","Products, orders, customers and discounts in one dashboard."],
+              ["04","GROW WITHOUT COMPLEXITY","Start small and upgrade when your business needs more."]
+            ].map(([n,t,c]) => (
+              <div className="ref-trust-card" key={n}><b>{n}</b><div><strong>{t}</strong><p>{c}</p></div><ArrowRight size={15}/></div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="ref-section ref-features">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">THE TOOLKIT</div><h2>Everything your<br/><span>business needs.</span></h2></div><p>One simple platform for your storefront, selling tools and daily operations.</p></div>
