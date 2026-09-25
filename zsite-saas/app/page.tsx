@@ -81,7 +81,7 @@ export default function Home(){
 
   async function signOut(){await supabase().auth.signOut();location.href='/connect';}
 
-  if(loading)return <div className="loading">Connecting to Supabase…</div>;
+  if(loading)return <div className="loading"><div><b>BUILD YOUR STORE</b><p>Connecting to Supabase and preparing your merchant workspace…</p></div></div>;
   if(!user)return <div className="loading"><div><b>Sign in required</b><p>Connect your merchant account first.</p><button className="btn primary" onClick={()=>location.href='/connect'}>Open login</button></div></div>;
 
   return <div className="app">
