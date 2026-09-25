@@ -330,11 +330,32 @@ function Shipping({store,setStore}:{store:any;setStore:(v:any)=>void}){const [en
 
 
 function Plan({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
+  const [subscription,setSubscription]=useState<any>(null);
+  const [loadingSub,setLoadingSub]=useState(false);
   const plan=String(store?.plan||'free');
   const limits:any={free:{name:'FREE',price:'₹0',products:10,categories:1,color:'#15803d'},starter:{name:'STARTER',price:'₹299',products:100,categories:Infinity,color:'#2563eb'},growth:{name:'GROWTH',price:'₹499',products:Infinity,categories:Infinity,color:'#7c3aed'}};
   const current=limits[plan]||limits.free;
   const productLimit=current.products===Infinity?'Unlimited':current.products;
   const productPct=current.products===Infinity?0:Math.min(100,(items.length/current.products)*100);
+
+  useEffect(()=>{
+    let cancelled=false;
+    async function loadSubscription(){
+      if(!store?.id||plan==='free'){setSubscription(null);return;}
+      setLoadingSub(true);
+      const {data,error}=await supabase().from('store_subscriptions').select('provider_subscription_id,billing_interval,status,amount,currency,current_period_end,created_at').eq('store_id',store.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+      if(!cancelled)setSubscription(error?null:data||null);
+      if(!cancelled)setLoadingSub(false);
+    }
+    loadSubscription();
+    return ()=>{cancelled=true};
+  },[store?.id,plan]);
+
+  const status=String(store?.subscription_status||subscription?.status||'active').toLowerCase();
+  const statusLabel=status==='past_due'?'PAST DUE':status.toUpperCase();
+  const renewal=subscription?.current_period_end?new Date(subscription.current_period_end).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
+  const interval=String(subscription?.billing_interval||store?.billing_interval||'monthly').toUpperCase();
+
   return <div>
     <div className="pagehead"><div><h1>Plan & billing</h1><p>Your HEPRA Store Builder subscription and usage.</p></div><div className="actions"><a className="btn primary" href="/pricing">View plans →</a></div></div>
     <div className="plan-dashboard">
@@ -342,7 +363,7 @@ function Plan({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
         <div className="plan-dashboard-kicker">CURRENT PLAN</div>
         <div className="plan-dashboard-title"><span style={{background:current.color}}></span>{current.name}</div>
         <strong>{current.price}</strong><small>{plan==='free'?'/ forever':'/ month'}</small>
-        <p>{plan==='free'?'You are currently using the free plan. Upgrade when you need more products and advanced selling tools.':'Your plan is active. Billing integration can be connected next.'}</p>
+        <p>{plan==='free'?'You are currently using the free plan. Upgrade when you need more products and advanced selling tools.':status==='past_due'?'Your subscription needs payment attention. Update your payment mandate through Cashfree.':'Your subscription is active and synced with billing.'}</p>
         {plan==='free'&&<a href="/pricing#pricing" className="btn primary">UPGRADE PLAN →</a>}
       </div>
       <div className="usage-card">
@@ -351,8 +372,18 @@ function Plan({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
         <div className="usage-bar"><i style={{width:productPct+'%'}} /></div>
         <div className="usage-row"><span>Categories</span><b>{cats.length} / {current.categories===Infinity?'Unlimited':current.categories}</b></div>
         <div className="usage-row"><span>Store</span><b>{store?.slug||'—'}</b></div>
-        <div className="usage-row"><span>Billing status</span><b>{String(store?.subscription_status||'active').toUpperCase()}</b></div>
+        <div className="usage-row"><span>Billing status</span><b>{statusLabel}</b></div>
       </div>
+    </div>
+    <div className="panel plan-features-panel">
+      <div className="panelhead">SUBSCRIPTION <span className="muted">{loadingSub?'Syncing…':'Cashfree billing'}</span></div>
+      {plan==='free'?<div className="row"><div className="grow"><b>Free plan</b><div className="muted">No recurring subscription is active.</div></div><span className="pill">FREE</span></div>:<>
+        <div className="row"><div className="grow"><b>Status</b><div className="muted">Current subscription state</div></div><span className="pill">{statusLabel}</span></div>
+        <div className="row"><div className="grow"><b>Billing cycle</b><div className="muted">{interval==='YEARLY'?'Annual billing':'Monthly billing'}</div></div><span className="pill">{interval}</span></div>
+        <div className="row"><div className="grow"><b>Next renewal</b><div className="muted">Cashfree subscription period end</div></div><span>{renewal}</span></div>
+        <div className="row"><div className="grow"><b>Subscription ID</b><div className="muted">Provider reference</div></div><span style={{fontSize:10,maxWidth:220,overflow:'hidden',textOverflow:'ellipsis'}}>{subscription?.provider_subscription_id||'—'}</span></div>
+        {status==='past_due'&&<div className="error" style={{margin:13}}>Payment needs attention. Your subscription remains marked past due until Cashfree reports a successful payment.</div>}
+      </>}
     </div>
     <div className="panel plan-features-panel">
       <div className="panelhead">PLAN FEATURES <span className="muted">Based on your current tier</span></div>
