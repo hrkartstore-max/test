@@ -104,7 +104,7 @@ export default function Home(){
         {tab==='Categories'&&<Categories cats={cats} addCategory={addCategory} deleteCategory={deleteCategory} toggleCategory={toggleCategory}/>}
         {tab==='Discounts'&&<Discounts store={store} setError={setError}/>}
         {tab==='Payments'&&<Payments store={store} setStore={setStore}/>} {tab==='Shipping'&&<Shipping store={store} setStore={setStore}/>} {tab==='Plan'&&<Plan store={store} items={items} cats={cats}/>}
-        {['Reports','zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
+        {tab==='Reports'&&<Reports store={store} items={items}/>}\n        {['zPOS','zStock'].includes(tab)&&<Coming title={tab}/>}
       </section>
       <div className="mobilebar">{nav.slice(0,5).map(([label,Icon])=><button className={tab===label?'active':''} key={label} onClick={()=>setTab(label)}><Icon size={15}/><br/>{label}</button>)}</div>
     </main>
@@ -438,5 +438,35 @@ function Dashboard({store,items,cats}:{store:any;items:Item[];cats:Cat[]}){
         </div>
       </div>
     </div>
+  </div>
+}
+
+function Reports({store,items}:{store:any;items:Item[]}){
+  const [orders,setOrders]=useState<any[]>([]);
+  const [range,setRange]=useState(7);
+  const [loading,setLoading]=useState(true);
+  useEffect(()=>{let alive=true;async function load(){if(!store?.id)return;setLoading(true);const {data}=await supabase().from('orders').select('id,total,status,created_at,payment_status,payment_method').eq('store_id',store.id).order('created_at',{ascending:false}).limit(1000);if(alive)setOrders(data||[]);setLoading(false)}load();return()=>{alive=false}},[store?.id]);
+  const cutoff=new Date();cutoff.setHours(0,0,0,0);cutoff.setDate(cutoff.getDate()-(range-1));
+  const filtered=orders.filter(o=>new Date(o.created_at)>=cutoff);
+  const valid=filtered.filter(o=>o.status!=='cancelled');
+  const revenue=valid.reduce((s,o)=>s+Number(o.total||0),0);
+  const avg=valid.length?Math.round(revenue/valid.length):0;
+  const paid=filtered.filter(o=>String(o.payment_status).toLowerCase()==='paid').length;
+  const cod=filtered.filter(o=>String(o.payment_method).toLowerCase()==='cod').length;
+  const daily=Array.from({length:range},(_,i)=>{const d=new Date(cutoff);d.setDate(cutoff.getDate()+i);const key=d.toISOString().slice(0,10);return {key,label:d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}),value:valid.filter(o=>String(o.created_at).slice(0,10)===key).reduce((s,o)=>s+Number(o.total||0),0),count:valid.filter(o=>String(o.created_at).slice(0,10)===key).length}}).filter(x=>range<=14||x.value>0||x.count>0);
+  const max=Math.max(...daily.map(x=>x.value),1);
+  return <div className="reports">
+    <div className="pagehead"><div><h1>Reports & analytics</h1><p>Sales, orders and payment performance from your store.</p></div><div className="actions">{[7,30,90].map(n=><button key={n} className={range===n?'btn primary':'btn'} onClick={()=>setRange(n)}>{n}D</button>)}</div></div>
+    <div className="cards">
+      <div className="stat"><small>NET SALES</small><strong>₹{revenue.toLocaleString('en-IN')}</strong></div>
+      <div className="stat"><small>ORDERS</small><strong>{valid.length}</strong></div>
+      <div className="stat"><small>AVG ORDER VALUE</small><strong>₹{avg.toLocaleString('en-IN')}</strong></div>
+      <div className="stat"><small>PAID / COD</small><strong>{paid} / {cod}</strong></div>
+    </div>
+    <div className="reports-grid">
+      <div className="panel report-chart"><div className="panelhead">SALES TREND <span className="muted">Last {range} days</span></div>{loading?<div className="empty">Loading analytics…</div>:daily.length?<div className="chart-wrap"><div className="chart-bars">{daily.map(x=><div className="chart-col" key={x.key} title={x.label+' · ₹'+x.value.toLocaleString('en-IN')}><div className="chart-bar" style={{height:Math.max(4,(x.value/max)*150)}}></div><span>{x.label}</span></div>)}</div></div>:<div className="empty">No sales data for this period.</div>}</div>
+      <div className="panel"><div className="panelhead">ORDER MIX</div><div className="mix-row"><span>Paid</span><b>{paid}</b></div><div className="mix-row"><span>COD</span><b>{cod}</b></div><div className="mix-row"><span>Pending</span><b>{filtered.filter(o=>String(o.payment_status).toLowerCase()!=='paid').length}</b></div><div className="mix-row"><span>Cancelled</span><b>{filtered.filter(o=>o.status==='cancelled').length}</b></div></div>
+    </div>
+    <div className="panel"><div className="panelhead">TOP PRODUCTS <span className="muted">{items.length} catalog items</span></div>{items.length?items.slice(0,8).map((i,idx)=><div className="row" key={i.id}><span className="rank">{String(idx+1).padStart(2,'0')}</span><div className="grow"><b>{i.name}</b><div className="muted">{i.stock} in stock</div></div><span>₹{Number(i.price||0).toLocaleString('en-IN')}</span><span className="pill">{i.active?'LIVE':'DRAFT'}</span></div>):<div className="empty">Add products to start tracking your catalog.</div>}</div>
   </div>
 }
