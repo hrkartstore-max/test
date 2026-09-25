@@ -114,6 +114,28 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-ai-builder">
+        <div className="ref-container">
+          <div className="ref-ai-grid">
+            <div className="ref-ai-copy">
+              <div className="ref-kicker">✨ AI STORE BUILDER</div>
+              <h2>Describe your business.<br/><span>HEPRA builds the start.</span></h2>
+              <p>Tell us what you sell, choose your style and let AI generate the structure for your storefront.</p>
+              <div className="ref-ai-chips"><span>Restaurant</span><span>Fashion</span><span>Optical</span><span>Jewellery</span></div>
+              <Link href="/register" className="ref-orange-btn">Create with AI <ArrowRight size={16}/></Link>
+            </div>
+            <div className="ref-ai-window">
+              <div className="ref-ai-window-top"><span>HEPRA AI</span><b>● LIVE</b></div>
+              <div className="ref-ai-chat">
+                <div className="ref-ai-msg user">I sell premium women's fashion. I need an online store with products, WhatsApp orders and COD.</div>
+                <div className="ref-ai-msg ai"><strong>HEPRA AI</strong><p>Perfect. I'll prepare a fashion storefront with:</p><ul><li>Product catalog & collections</li><li>WhatsApp ordering</li><li>COD checkout</li><li>Mobile-first design</li></ul><span>Building your store <i>•••</i></span></div>
+              </div>
+              <div className="ref-ai-input">Describe your business... <b>↗</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="features" className="ref-section ref-features">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">THE TOOLKIT</div><h2>Everything your<br/><span>business needs.</span></h2></div><p>One simple platform for your storefront, selling tools and daily operations.</p></div>
