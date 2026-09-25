@@ -138,31 +138,30 @@ app.post("/api/auth/register", async (req, res) => {
   if (!SUPABASE_URL || !SUPABASE_PUBLIC_KEY) {
     return res.status(503).json({ message: "Supabase is not configured on the backend. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Vercel." });
   }
-  if (!SUPABASE_SECRET_KEY) {
-    return res.status(503).json({ message: "SUPABASE_SECRET_KEY is missing on the backend. Add the server-only Supabase secret key in Vercel, then redeploy." });
-  }
   try {
     let userId = "";
     let session: any = null;
-    if (SUPABASE_SECRET_KEY) {
-      const admin = adminSupabase();
-      const created = await admin.auth.admin.createUser({
-        email, password, email_confirm: true,
-        user_metadata: { name, phone, businessName, role: "MERCHANT" }
+
+    // Registration works with the publishable key only.
+    // If Supabase email confirmation is disabled, signUp returns a session immediately.
+    // If email confirmation is enabled, the user must verify the email and then sign in.
+    const signed = await publicSupabase().auth.signUp({
+      email,
+      password,
+      options: { data: { name, phone, businessName, role: "MERCHANT" } }
+    });
+
+    if (signed.error) return res.status(400).json({ message: signed.error.message });
+    userId = signed.data.user?.id || "";
+    session = signed.data.session;
+
+    if (!userId) return res.status(400).json({ message: "Account could not be created." });
+
+    if (!session) {
+      return res.status(201).json({
+        requiresEmailVerification: true,
+        message: "Account created. Please verify your email, then sign in."
       });
-      if (created.error) return res.status(400).json({ message: created.error.message });
-      userId = created.data.user.id;
-      const signed = await publicSupabase().auth.signInWithPassword({ email, password });
-      if (signed.error || !signed.data.session) return res.status(500).json({ message: "Account created, but session could not be created." });
-      session = signed.data.session;
-    } else {
-      const signed = await publicSupabase().auth.signUp({
-        email, password, options: { data: { name, phone, businessName, role: "MERCHANT" } }
-      });
-      if (signed.error) return res.status(400).json({ message: signed.error.message });
-      userId = signed.data.user?.id || "";
-      session = signed.data.session;
-      if (!session) return res.status(403).json({ message: "Account created. Please verify your email, then sign in." });
     }
 
     const sb = userSupabase(session.access_token);
