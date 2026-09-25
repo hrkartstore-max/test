@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {CheckCircle2,Clock3,XCircle} from 'lucide-react';
-import {supabase} from '../../lib/supabase';
+import {supabase} from '../../../lib/supabase';
 
 export default function BillingReturn(){
  const [status,setStatus]=useState('checking'),[message,setMessage]=useState('');
