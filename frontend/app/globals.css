@@ -61,3 +61,36 @@
 .ref-price-pro .ref-plan-btn.dark{background:var(--r-orange)}
 @media(max-width:900px){.ref-pricing-grid{grid-template-columns:1fr}.ref-price-featured{transform:none}}
 @media(max-width:600px){.ref-price-card{min-height:auto;padding:24px 20px}.ref-price{font-size:40px;margin:18px 0 22px}.ref-price-featured{order:-1}}
+
+/* HEPRA four-plan pricing comparison */
+.ref-pricing-table{border:1px solid var(--r-line);background:#fff;overflow:hidden}
+.ref-pricing-head,.ref-pricing-row,.ref-pricing-actions{display:grid;grid-template-columns:1.35fr repeat(4,1fr)}
+.ref-pricing-head{background:#111318;color:#fff;border-bottom:1px solid #111318}
+.ref-pricing-head>div,.ref-pricing-row>div,.ref-pricing-actions>div{min-width:0;padding:17px 15px;border-right:1px solid var(--r-line)}
+.ref-pricing-head>div:last-child,.ref-pricing-row>div:last-child,.ref-pricing-actions>div:last-child{border-right:0}
+.ref-pricing-head>div:not(:first-child){display:flex;flex-direction:column;gap:9px;justify-content:center}
+.ref-pricing-plan-label{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.13em;color:#aaa;display:flex;align-items:center}
+.ref-plan-name{font-size:11px;font-weight:950;letter-spacing:.06em}
+.ref-plan-name.green{color:#63d47a}.ref-plan-name.blue{color:#66a8ff}.ref-plan-name.purple{color:#a98aff}.ref-plan-name.orange{color:#ff765e}
+.ref-pricing-head strong{font-size:18px;letter-spacing:-.04em}
+.ref-pricing-row{border-bottom:1px solid var(--r-line)}
+.ref-pricing-row:nth-child(odd){background:#faf7f0}
+.ref-pricing-row>div{font-size:11px;display:flex;align-items:center;min-height:49px}
+.ref-feature-label{font-weight:800;color:#252321}
+.ref-pricing-row>div:not(:first-child){justify-content:center;text-align:center;color:#5e5a55}
+.ref-pricing-row>div:nth-child(4){background:#f7f1ff}
+.ref-pricing-actions{background:#f4efe5}
+.ref-pricing-actions>div{padding:14px}
+.ref-pricing-actions .ref-plan-btn{margin:0}
+@media(max-width:900px){
+  .ref-pricing-table{overflow-x:auto}
+  .ref-pricing-head,.ref-pricing-row,.ref-pricing-actions{min-width:760px}
+}
+@media(max-width:600px){
+  .ref-pricing{padding-left:0;padding-right:0}
+  .ref-pricing .ref-container{width:100%}
+  .ref-pricing .ref-section-head{padding:0 14px}
+  .ref-pricing-head>div,.ref-pricing-row>div,.ref-pricing-actions>div{padding:14px 10px}
+  .ref-pricing-head strong{font-size:15px}
+  .ref-pricing-row>div{font-size:10px;min-height:46px}
+}
