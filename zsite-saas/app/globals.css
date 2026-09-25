@@ -147,3 +147,5 @@
 
 /* V17 category mega menu */
 .v17-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}.mega-menu{position:absolute;left:0;right:0;top:100%;z-index:60;background:#fff;border:1px solid #111722;padding:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;box-shadow:0 8px 0 rgba(0,0,0,.12)}.mega-menu a{font-weight:900;text-decoration:none;color:inherit;padding:10px}.category-nav-trigger{font-weight:900;cursor:pointer;background:none;border:0;padding:8px}@media(max-width:700px){.v17-controls{grid-template-columns:1fr}.mega-menu{display:none}}
+
+.category-nav-wrap{position:relative}.store-category-links{display:flex;gap:8px;overflow:auto}.store-category-links a{white-space:nowrap;font-weight:800;text-decoration:none;color:inherit;padding:7px}.category-mega{position:relative}.category-mega summary{list-style:none}.category-mega[open] .mega-menu{display:grid}.store-category-links a:hover,.category-nav-trigger:hover{text-decoration:underline}@media(max-width:700px){.store-category-links{display:none}.category-mega{display:none}}
