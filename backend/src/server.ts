@@ -269,6 +269,8 @@ app.put("/api/store", requireUser, async (req: AuthRequest, res) => {
   } catch (e: any) { res.status(500).json({ message: e.message }); }
 });
 
+app.patch("/api/products/:id/stock", requireUser, async(req,res)=>{const p=z.object({stock:z.coerce.number().int().min(0),reason:z.string().max(200).optional()}).safeParse(req.body);if(!p.success)return res.status(400).json({message:"Stock must be a non-negative integer"});try{const store=await getOwnedStore(req as AuthRequest);if(!store)return res.status(404).json({message:"Store not found"});const sb=tenantStore(req as AuthRequest);const item=await sb.from("items").select("id,name,stock").eq("id",req.params.id).eq("store_id",store.id).maybeSingle();if(item.error)throw item.error;if(!item.data)return res.status(404).json({message:"Product not found"});const updated=await sb.from("items").update({stock:p.data.stock}).eq("id",item.data.id).select("id,name,stock").single();if(updated.error)throw updated.error;res.json({ok:true,product:updated.data,previousStock:item.data.stock,reason:p.data.reason||"manual adjustment"});}catch(e:any){res.status(500).json({message:e.message});}});
+
 app.get("/api/products", requireUser, async (req: AuthRequest, res) => {
   try {
     const store = await getOwnedStore(req); if (!store) return res.status(404).json({ message: "Store not found" });
