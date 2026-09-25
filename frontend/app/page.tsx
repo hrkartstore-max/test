@@ -103,58 +103,59 @@ export default function Home() {
         <div className="ref-container">
           <div className="ref-section-head centered">
             <div>
-              <div className="ref-kicker">SIMPLE PRICING</div>
-              <h2>Start free.<br/><span>Upgrade when ready.</span></h2>
+              <div className="ref-kicker">💰 HEPRA PRICING</div>
+              <h2>Simple plans.<br/><span>Clear pricing.</span></h2>
             </div>
-            <p>No complicated setup. Choose the plan that matches the stage of your business.</p>
+            <p>Start free and upgrade as your store grows. No complicated pricing.</p>
           </div>
 
-          <div className="ref-pricing-grid">
-            <article className="ref-price-card">
-              <div className="ref-plan-top"><span className="ref-plan-dot free"/> FREE</div>
-              <p className="ref-plan-copy">Start your online presence with the essentials.</p>
-              <div className="ref-price">₹0 <small>/ month</small></div>
-              <ul>
-                <li><Check size={14}/> 10 products</li>
-                <li><Check size={14}/> Basic storefront</li>
-                <li><Check size={14}/> HEPRA subdomain</li>
-                <li><Check size={14}/> Orders</li>
-                <li><Check size={14}/> COD</li>
-              </ul>
+          <div className="ref-pricing-table">
+            <div className="ref-pricing-head">
+              <div className="ref-pricing-plan-label">Plan</div>
+              <div><span className="ref-plan-name green">🟢 FREE</span><strong>₹0/month</strong></div>
+              <div><span className="ref-plan-name blue">🔵 STARTER</span><strong>₹299/month</strong></div>
+              <div><span className="ref-plan-name purple">🟣 GROWTH</span><strong>₹699/month</strong></div>
+              <div><span className="ref-plan-name orange">🟠 PRO</span><strong>₹1,499/month</strong></div>
+            </div>
+
+            {[
+              ["Products","10","100","1,000","Unlimited"],
+              ["Storefront","✅","✅","✅","✅"],
+              ["HEPRA subdomain","✅","✅","✅","✅"],
+              ["Custom domain","❌","✅","✅","✅"],
+              ["Categories","1","Unlimited","Unlimited","Unlimited"],
+              ["Orders","✅","✅","✅","✅"],
+              ["COD","✅","✅","✅","✅"],
+              ["UPI","❌","✅","✅","✅"],
+              ["Online payment gateway","❌","❌","✅","✅"],
+              ["Discounts / Coupons","❌","✅","✅","✅"],
+              ["Inventory","Basic","✅","Advanced","Advanced"],
+              ["Customers","Basic","✅","✅","Advanced"],
+              ["WhatsApp","Basic","✅","✅","Advanced"],
+              ["Shiprocket","❌","✅","✅","✅"],
+              ["Analytics","Basic","Basic","Advanced","Advanced"],
+              ["SEO tools","Basic","✅","Advanced","Advanced"],
+              ["Store customization","Basic","✅","Advanced","Full"],
+              ["Staff accounts","1","2","5","10"],
+              ["Priority support","❌","❌","✅","✅"],
+              ["AI tools","❌","❌","Basic","Full"],
+            ].map(([feature,free,starter,growth,pro]) => (
+              <div className="ref-pricing-row" key={feature}>
+                <div className="ref-feature-label">{feature}</div>
+                <div>{free}</div>
+                <div>{starter}</div>
+                <div>{growth}</div>
+                <div>{pro}</div>
+              </div>
+            ))}
+
+            <div className="ref-pricing-actions">
+              <div></div>
               <Link href="/register" className="ref-plan-btn light">Start free <ArrowRight size={14}/></Link>
-            </article>
-
-            <article className="ref-price-card ref-price-featured">
-              <div className="ref-plan-badge">POPULAR</div>
-              <div className="ref-plan-top"><span className="ref-plan-dot starter"/> STARTER</div>
-              <p className="ref-plan-copy">Everything you need to launch and start selling.</p>
-              <div className="ref-price">₹299 <small>/ month</small></div>
-              <ul>
-                <li><Check size={14}/> 100 products</li>
-                <li><Check size={14}/> Custom domain</li>
-                <li><Check size={14}/> Unlimited categories</li>
-                <li><Check size={14}/> UPI + COD</li>
-                <li><Check size={14}/> Discounts & coupons</li>
-                <li><Check size={14}/> Shiprocket</li>
-              </ul>
               <Link href="/register" className="ref-plan-btn dark">Start Starter <ArrowRight size={14}/></Link>
-            </article>
-
-            <article className="ref-price-card ref-price-pro">
-              <div className="ref-plan-top"><span className="ref-plan-dot pro"/> PRO</div>
-              <p className="ref-plan-copy">More power for growing stores and serious sellers.</p>
-              <div className="ref-price">₹499 <small>/ month</small></div>
-              <ul>
-                <li><Check size={14}/> Unlimited products</li>
-                <li><Check size={14}/> Custom domain</li>
-                <li><Check size={14}/> UPI + COD</li>
-                <li><Check size={14}/> Discounts & coupons</li>
-                <li><Check size={14}/> Shiprocket</li>
-                <li><Check size={14}/> Advanced analytics</li>
-                <li><Check size={14}/> Staff accounts</li>
-              </ul>
+              <Link href="/register" className="ref-plan-btn dark">Start Growth <ArrowRight size={14}/></Link>
               <Link href="/register" className="ref-plan-btn dark">Start Pro <ArrowRight size={14}/></Link>
-            </article>
+            </div>
           </div>
         </div>
       </section>
