@@ -123,3 +123,7 @@
 
 /* V14 theme builder */
 .theme-builder-panel{margin-bottom:14px}.theme-controls-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.toggle-field{display:flex;align-items:center;gap:8px;border:1px solid #111722;padding:10px;background:#fff;font-weight:700;font-size:12px}.toggle-field input{accent-color:#111722}@media(max-width:900px){.theme-controls-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.theme-controls-grid{grid-template-columns:1fr}}
+
+
+/* V14 storefront theme */
+.store-announcement.minimal{padding:6px 14px;font-size:11px}.store-announcement.hidden{display:none!important}.store-header.header-centered{justify-content:center;position:relative}.store-header.header-centered .cart-button{position:absolute;right:20px}.store-header.header-compact{padding:8px 16px}.store-header-name{font-size:18px;letter-spacing:.02em}@media(max-width:600px){.store-header.header-centered .cart-button{right:10px}.store-announcement{font-size:11px;padding:7px 10px}}
