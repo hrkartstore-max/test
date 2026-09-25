@@ -157,6 +157,33 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="ref-section ref-india">
+        <div className="ref-container">
+          <div className="ref-india-grid">
+            <div>
+              <div className="ref-kicker">BUILT FOR INDIA 🇮🇳</div>
+              <h2>Everything local sellers need.<br/><span>Nothing extra.</span></h2>
+              <p>HEPRA is designed around the way Indian businesses actually sell — UPI, COD, WhatsApp, local delivery and mobile-first shopping.</p>
+              <Link href="/register" className="ref-orange-btn">Build your store <ArrowRight size={16}/></Link>
+            </div>
+            <div className="ref-india-points">
+              {[
+                ["01","UPI READY","Accept UPI payments and give customers a familiar checkout."],
+                ["02","COD READY","Keep cash-on-delivery orders simple from checkout to dashboard."],
+                ["03","WHATSAPP","Let customers discover, ask and order through WhatsApp."],
+                ["04","SHIPROCKET","Connect shipping workflows and manage delivery from one place."],
+                ["05","MOBILE FIRST","Your storefront is built for the device most customers use."],
+                ["06","ZERO CODE","Create, customize and publish without hiring a developer."]
+              ].map(([n,t,c]) => (
+                <div className="ref-india-point" key={n}>
+                  <b>{n}</b><div><strong>{t}</strong><p>{c}</p></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="how" className="ref-section ref-how">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">HOW IT WORKS</div><h2>Idea to live store<br/><span>in simple steps.</span></h2></div></div>
