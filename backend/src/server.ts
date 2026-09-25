@@ -117,7 +117,15 @@ app.get("/api/health", async (_req, res) => {
     const sb = publicSupabase();
     const { error } = await sb.from("stores").select("id").limit(1);
     if (error) return res.status(503).json({ ok: false, service: "hepra-api", database: "error", message: error.message });
-    res.json({ ok: true, service: "hepra-api", database: "supabase", project: SUPABASE_URL });
+    res.json({
+      ok: true, service: "hepra-api", database: "supabase",
+      configured: {
+        url: Boolean(SUPABASE_URL),
+        publishableKey: Boolean(SUPABASE_PUBLIC_KEY),
+        secretKey: Boolean(SUPABASE_SECRET_KEY)
+      },
+      project: SUPABASE_URL
+    });
   } catch (e: any) {
     res.status(503).json({ ok: false, service: "hepra-api", database: "not_configured", message: e.message });
   }
@@ -127,6 +135,12 @@ app.post("/api/auth/register", async (req, res) => {
   const parsed = registerInput.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Please enter valid details.", errors: parsed.error.flatten() });
   const { name, businessName, email, phone, password } = parsed.data;
+  if (!SUPABASE_URL || !SUPABASE_PUBLIC_KEY) {
+    return res.status(503).json({ message: "Supabase is not configured on the backend. Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in Vercel." });
+  }
+  if (!SUPABASE_SECRET_KEY) {
+    return res.status(503).json({ message: "SUPABASE_SECRET_KEY is missing on the backend. Add the server-only Supabase secret key in Vercel, then redeploy." });
+  }
   try {
     let userId = "";
     let session: any = null;
