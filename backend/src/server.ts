@@ -209,11 +209,24 @@ const registerInput = z.object({
   name: z.string().min(2), businessName: z.string().min(2), email: z.string().email(), phone: z.string().min(8), password: z.string().min(8)
 });
 
+let mongoConnectPromise: Promise<typeof mongoose> | null = null;
+async function ensureDatabase() {
+  if (mongoose.connection.readyState === 1) return;
+  if (!process.env.MONGODB_URI) throw new Error("MONGODB_URI is not configured.");
+  if (!mongoConnectPromise) {
+    mongoConnectPromise = mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+  }
+  await mongoConnectPromise;
+}
+
 app.get("/api/health", (_req,res)=>res.json({ok:true,service:"hepra-api",database:mongoose.connection.readyState===1?"connected":"disconnected",time:new Date().toISOString()}));
 
 app.post("/api/auth/register", async (req,res)=>{
   const p=registerInput.safeParse(req.body); if(!p.success)return res.status(400).json({message:"Please enter valid details.",errors:p.error.flatten()});
-  if(mongoose.connection.readyState!==1)return res.status(503).json({message:"Database is not connected. Start MongoDB and restart the API."});
+  try { await ensureDatabase(); } catch (error: any) {
+    console.error("Registration database connection failed:", error);
+    return res.status(503).json({message:"Database is unavailable. Check MONGODB_URI in Vercel."});
+  }
   const {name,businessName,email,phone,password}=p.data;
   if(await User.findOne({email}))return res.status(409).json({message:"An account with this email already exists."});
   const tenantId=new mongoose.Types.ObjectId().toString(), passwordHash=await bcrypt.hash(password,12);
@@ -225,7 +238,10 @@ app.post("/api/auth/register", async (req,res)=>{
 
 app.post("/api/auth/login", async (req,res)=>{
   const p=z.object({email:z.string().email(),password:z.string().min(1)}).safeParse(req.body); if(!p.success)return res.status(400).json({message:"Enter your email and password."});
-  if(mongoose.connection.readyState!==1)return res.status(503).json({message:"Database is not connected. Start MongoDB and restart the API."});
+  try { await ensureDatabase(); } catch (error: any) {
+    console.error("Login database connection failed:", error);
+    return res.status(503).json({message:"Database is unavailable. Check MONGODB_URI in Vercel."});
+  }
   const user=await User.findOne({email:p.data.email});
   if(!user || !(await bcrypt.compare(p.data.password,user.passwordHash)))return res.status(401).json({message:"Invalid email or password."});
   const store: any=await Store.findOne({tenantId:user.tenantId});
