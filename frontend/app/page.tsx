@@ -97,6 +97,67 @@ export default function Home() {
         </div>
       </section>
 
+
+      <section id="pricing" className="ref-section ref-pricing">
+        <div className="ref-container">
+          <div className="ref-section-head centered">
+            <div>
+              <div className="ref-kicker">SIMPLE PRICING</div>
+              <h2>Start free.<br/><span>Upgrade when ready.</span></h2>
+            </div>
+            <p>No complicated setup. Choose the plan that matches the stage of your business.</p>
+          </div>
+
+          <div className="ref-pricing-grid">
+            <article className="ref-price-card">
+              <div className="ref-plan-top"><span className="ref-plan-dot free"/> FREE</div>
+              <p className="ref-plan-copy">Start your online presence with the essentials.</p>
+              <div className="ref-price">₹0 <small>/ month</small></div>
+              <ul>
+                <li><Check size={14}/> 10 products</li>
+                <li><Check size={14}/> Basic storefront</li>
+                <li><Check size={14}/> HEPRA subdomain</li>
+                <li><Check size={14}/> Orders</li>
+                <li><Check size={14}/> COD</li>
+              </ul>
+              <Link href="/register" className="ref-plan-btn light">Start free <ArrowRight size={14}/></Link>
+            </article>
+
+            <article className="ref-price-card ref-price-featured">
+              <div className="ref-plan-badge">POPULAR</div>
+              <div className="ref-plan-top"><span className="ref-plan-dot starter"/> STARTER</div>
+              <p className="ref-plan-copy">Everything you need to launch and start selling.</p>
+              <div className="ref-price">₹299 <small>/ month</small></div>
+              <ul>
+                <li><Check size={14}/> 100 products</li>
+                <li><Check size={14}/> Custom domain</li>
+                <li><Check size={14}/> Unlimited categories</li>
+                <li><Check size={14}/> UPI + COD</li>
+                <li><Check size={14}/> Discounts & coupons</li>
+                <li><Check size={14}/> Shiprocket</li>
+              </ul>
+              <Link href="/register" className="ref-plan-btn dark">Start Starter <ArrowRight size={14}/></Link>
+            </article>
+
+            <article className="ref-price-card ref-price-pro">
+              <div className="ref-plan-top"><span className="ref-plan-dot pro"/> PRO</div>
+              <p className="ref-plan-copy">More power for growing stores and serious sellers.</p>
+              <div className="ref-price">₹499 <small>/ month</small></div>
+              <ul>
+                <li><Check size={14}/> Unlimited products</li>
+                <li><Check size={14}/> Custom domain</li>
+                <li><Check size={14}/> UPI + COD</li>
+                <li><Check size={14}/> Discounts & coupons</li>
+                <li><Check size={14}/> Shiprocket</li>
+                <li><Check size={14}/> Advanced analytics</li>
+                <li><Check size={14}/> Staff accounts</li>
+              </ul>
+              <Link href="/register" className="ref-plan-btn dark">Start Pro <ArrowRight size={14}/></Link>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section id="how" className="ref-section ref-how">
         <div className="ref-container">
           <div className="ref-section-head centered"><div><div className="ref-kicker">HOW IT WORKS</div><h2>Idea to live store<br/><span>in simple steps.</span></h2></div></div>
