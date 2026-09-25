@@ -109,42 +109,40 @@ export default function Home() {
             <p>Start free and upgrade as your store grows. No complicated pricing.</p>
           </div>
 
-          <div className="ref-pricing-table">
+          <div className="ref-pricing-table ref-pricing-three">
             <div className="ref-pricing-head">
               <div className="ref-pricing-plan-label">Plan</div>
               <div><span className="ref-plan-name green">🟢 FREE</span><strong>₹0/month</strong></div>
               <div><span className="ref-plan-name blue">🔵 STARTER</span><strong>₹299/month</strong></div>
-              <div><span className="ref-plan-name purple">🟣 GROWTH</span><strong>₹699/month</strong></div>
-              <div><span className="ref-plan-name orange">🟠 PRO</span><strong>₹1,499/month</strong></div>
+              <div><span className="ref-plan-name purple">🟣 PRO</span><strong>₹499/month</strong></div>
             </div>
 
             {[
-              ["Products","10","100","1,000","Unlimited"],
-              ["Storefront","✅","✅","✅","✅"],
-              ["HEPRA subdomain","✅","✅","✅","✅"],
-              ["Custom domain","❌","✅","✅","✅"],
-              ["Categories","1","Unlimited","Unlimited","Unlimited"],
-              ["Orders","✅","✅","✅","✅"],
-              ["COD","✅","✅","✅","✅"],
-              ["UPI","❌","✅","✅","✅"],
-              ["Online payment gateway","❌","❌","✅","✅"],
-              ["Discounts / Coupons","❌","✅","✅","✅"],
-              ["Inventory","Basic","✅","Advanced","Advanced"],
-              ["Customers","Basic","✅","✅","Advanced"],
-              ["WhatsApp","Basic","✅","✅","Advanced"],
-              ["Shiprocket","❌","✅","✅","✅"],
-              ["Analytics","Basic","Basic","Advanced","Advanced"],
-              ["SEO tools","Basic","✅","Advanced","Advanced"],
-              ["Store customization","Basic","✅","Advanced","Full"],
-              ["Staff accounts","1","2","5","10"],
-              ["Priority support","❌","❌","✅","✅"],
-              ["AI tools","❌","❌","Basic","Full"],
-            ].map(([feature,free,starter,growth,pro]) => (
+              ["Products","10","100","Unlimited"],
+              ["Storefront","✅","✅","✅"],
+              ["HEPRA subdomain","✅","✅","✅"],
+              ["Custom domain","❌","✅","✅"],
+              ["Categories","1","Unlimited","Unlimited"],
+              ["Orders","✅","✅","✅"],
+              ["COD","✅","✅","✅"],
+              ["UPI","❌","✅","✅"],
+              ["Online payment gateway","❌","❌","✅"],
+              ["Discounts / Coupons","❌","✅","✅"],
+              ["Inventory","Basic","✅","Advanced"],
+              ["Customers","Basic","✅","Advanced"],
+              ["WhatsApp","Basic","✅","Advanced"],
+              ["Shiprocket","❌","✅","✅"],
+              ["Analytics","Basic","Basic","Advanced"],
+              ["SEO tools","Basic","✅","Advanced"],
+              ["Store customization","Basic","✅","Full"],
+              ["Staff accounts","1","2","10"],
+              ["Priority support","❌","❌","✅"],
+              ["AI tools","❌","❌","Full"],
+            ].map(([feature,free,starter,pro]) => (
               <div className="ref-pricing-row" key={feature}>
                 <div className="ref-feature-label">{feature}</div>
                 <div>{free}</div>
                 <div>{starter}</div>
-                <div>{growth}</div>
                 <div>{pro}</div>
               </div>
             ))}
@@ -153,7 +151,6 @@ export default function Home() {
               <div></div>
               <Link href="/register" className="ref-plan-btn light">Start free <ArrowRight size={14}/></Link>
               <Link href="/register" className="ref-plan-btn dark">Start Starter <ArrowRight size={14}/></Link>
-              <Link href="/register" className="ref-plan-btn dark">Start Growth <ArrowRight size={14}/></Link>
               <Link href="/register" className="ref-plan-btn dark">Start Pro <ArrowRight size={14}/></Link>
             </div>
           </div>
