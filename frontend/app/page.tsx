@@ -38,6 +38,17 @@ export default function Home() {
           <div className="ref-nav-actions">
             <Link href="/login" className="ref-login">Login</Link>
             <Link href="/register" className="ref-black-btn">Start free <ArrowRight size={15}/></Link>
+            <details className="ref-mobile-menu">
+              <summary aria-label="Open menu"><span></span><span></span><span></span></summary>
+              <div className="ref-mobile-menu-panel">
+                <a href="#features">Features</a>
+                <a href="#demos">Live demos</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#how">How it works</a>
+                <Link href="/login">Login</Link>
+                <Link href="/register" className="ref-mobile-menu-cta">Create your store <ArrowRight size={14}/></Link>
+              </div>
+            </details>
           </div>
         </div>
       </header>
