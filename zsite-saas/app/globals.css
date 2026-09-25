@@ -127,3 +127,7 @@
 
 /* V14 storefront theme */
 .store-announcement.minimal{padding:6px 14px;font-size:11px}.store-announcement.hidden{display:none!important}.store-header.header-centered{justify-content:center;position:relative}.store-header.header-centered .cart-button{position:absolute;right:20px}.store-header.header-compact{padding:8px 16px}.store-header-name{font-size:18px;letter-spacing:.02em}@media(max-width:600px){.store-header.header-centered .cart-button{right:10px}.store-announcement{font-size:11px;padding:7px 10px}}
+
+
+/* V15 navigation builder */
+.nav-builder{display:grid;gap:8px}.nav-builder-row{display:grid;grid-template-columns:1fr 1.6fr auto;gap:7px}.social-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.social-controls .toggle-field{grid-column:1/-1}@media(max-width:600px){.nav-builder-row{grid-template-columns:1fr auto}.nav-builder-row input:nth-child(2){grid-column:1/-1}.social-controls{grid-template-columns:1fr}}
