@@ -32,12 +32,26 @@ export default function Storefront({params}:{params:{slug:string}}){
   function add(item:Item){setCart(v=>{const old=v.find(l=>l.item.id===item.id);if(old)return v.map(l=>l.item.id===item.id?{...l,quantity:Math.min(l.quantity+1,item.stock)}:l);return [...v,{item,quantity:1}]});}
   function change(id:string,d:number){setCart(v=>v.map(l=>l.item.id===id?{...l,quantity:Math.max(0,Math.min(l.quantity+d,l.item.stock))}:l).filter(l=>l.quantity>0));}
   async function getRates(){if(!store||!customer.pincode)return;setShippingLoading(true);setShipping([]);const r=await fetch('/api/shipping/shiprocket/rates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pickup_postcode:(store as any).pickup_postcode||'',delivery_postcode:customer.pincode,weight:(store as any).default_package_weight||0.5,payment_method:'COD',cod_amount:total})});const d=await r.json();if(r.ok){setShipping(d.couriers||[]);setSelectedCourier(d.couriers?.[0]||null)}else setError(d.error||'Unable to get shipping rates');setShippingLoading(false);}
+  async function startOnlinePayment(orderId:string){
+    const r=await fetch('/api/payments/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:orderId,provider:store?.payment_provider||'cashfree'})});
+    const d=await r.json(); if(!r.ok){setError(d.error||'Unable to start payment');return;}
+    if(d.provider==='cashfree'){
+      await new Promise<void>((resolve,reject)=>{if((window as any).Cashfree){resolve();return;}const s=document.createElement('script');s.src='https://sdk.cashfree.com/js/v3/cashfree.js';s.onload=()=>resolve();s.onerror=()=>reject(new Error('Cashfree SDK failed to load'));document.body.appendChild(s);});
+      const cf=(window as any).Cashfree({mode:'sandbox'});
+      await cf.checkout({paymentSessionId:d.payment_session_id,redirectTarget:'_modal'});
+    }else{
+      await new Promise<void>((resolve,reject)=>{if((window as any).Razorpay){resolve();return;}const s=document.createElement('script');s.src='https://checkout.razorpay.com/v1/checkout.js';s.onload=()=>resolve();s.onerror=()=>reject(new Error('Razorpay SDK failed to load'));document.body.appendChild(s);});
+      const rz=new (window as any).Razorpay({key:d.key_id,amount:d.amount,currency:d.currency,name:store?.merchant_name||store?.name,order_id:d.gateway_order_id,description:'Store order',handler:()=>setSuccess('Payment submitted. Verification is handled securely by the payment gateway.')});
+      rz.open();
+    }
+  }
   async function placeOrder(){
     if(!store||!customer.name||!customer.phone||!cart.length)return;
     const client=supabase();
-    const {error:orderError}=await client.rpc('place_public_order',{p_store_id:store.id,p_customer_name:customer.name,p_customer_phone:customer.phone,p_customer_address:customer.address,p_shipping_pincode:customer.pincode,p_shipping_city:customer.city,p_shipping_state:customer.state,p_notes:customer.notes,p_shipping_method:selectedCourier?.name||'Standard',p_shipping_fee:shippingFee,p_cod_fee:codFee,p_payment_method:paymentMethod,p_items:cart.map(l=>({item_id:l.item.id,quantity:l.quantity}))});
+    const {data:orderId,error:orderError}=await client.rpc('place_public_order',{p_store_id:store.id,p_customer_name:customer.name,p_customer_phone:customer.phone,p_customer_address:customer.address,p_shipping_pincode:customer.pincode,p_shipping_city:customer.city,p_shipping_state:customer.state,p_notes:customer.notes,p_shipping_method:selectedCourier?.name||'Standard',p_shipping_fee:shippingFee,p_cod_fee:codFee,p_payment_method:paymentMethod,p_items:cart.map(l=>({item_id:l.item.id,quantity:l.quantity}))});
     if(orderError){setError(orderError.message);return;}
-    setCart([]);setCheckoutOpen(false);setCartOpen(false);setSuccess('Order placed successfully! The store has received your order.');
+    setCart([]);setCheckoutOpen(false);setCartOpen(false);
+    if(paymentMethod==='upi') await startOnlinePayment(String(orderId)); else setSuccess('Order placed successfully! The store has received your order.');
   }
   if(loading)return <div className="store-loading">Loading store…</div>;
   if(!store)return <div className="store-loading"><b>{error||'Store not found'}</b></div>;
