@@ -94,3 +94,9 @@
   .ref-pricing-head strong{font-size:15px}
   .ref-pricing-row>div{font-size:10px;min-height:46px}
 }
+
+/* Three-plan pricing layout */
+.ref-pricing-three .ref-pricing-head,
+.ref-pricing-three .ref-pricing-row,
+.ref-pricing-three .ref-pricing-actions{grid-template-columns:1.4fr repeat(3,1fr)}
+.ref-pricing-three .ref-pricing-row>div:nth-child(4){background:#faf3ff}
