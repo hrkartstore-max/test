@@ -32,6 +32,7 @@ export default function Home() {
           <nav>
             <a href="#features">Features</a>
             <a href="#demos">Live demos</a>
+            <a href="#pricing">Pricing</a>
             <a href="#how">How it works</a>
           </nav>
           <div className="ref-nav-actions">
