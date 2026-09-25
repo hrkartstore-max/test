@@ -323,6 +323,22 @@ export default function Home() {
 
       <section className="ref-cta"><div className="ref-container ref-cta-inner"><div><div className="ref-kicker">READY WHEN YOU ARE</div><h2>Launch your store.<br/><span>Grow your brand.</span></h2></div><Link href="/register" className="ref-black-btn large">Start free <ArrowRight size={17}/></Link></div></section>
 
+      <section className="ref-final-cta">
+        <div className="ref-container">
+          <div className="ref-final-cta-box">
+            <div>
+              <div className="ref-kicker">READY TO START?</div>
+              <h2>Your store.<br/><span>Your brand.</span><br/>Your next step.</h2>
+              <p>Launch your online store with HEPRA and start selling today.</p>
+            </div>
+            <div className="ref-final-actions">
+              <Link href="/register" className="ref-black-btn large">Create your store <ArrowRight size={17}/></Link>
+              <Link href="/login" className="ref-outline-btn">Already have an account? Login</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="ref-footer"><div className="ref-container ref-footer-grid"><div><Link href="/" className="ref-brand light"><span>H</span> HEPRA</Link><p>Build. Sell. Grow.</p></div><div><b>Platform</b><a href="#features">Features</a><a href="#demos">Live demos</a><a href="#how">How it works</a></div><div><b>Company</b><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a></div><div><b>Get started</b><Link href="/login">Login</Link><Link href="/register">Create store</Link></div></div><div className="ref-container ref-footer-bottom"><span>© 2026 HEPRA</span><span>Made for modern Indian businesses.</span></div></footer>
     </main>
   );
