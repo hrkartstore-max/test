@@ -87,6 +87,16 @@ function storeOut(s: any) {
   };
 }
 
+async function getStorePlan(req: AuthRequest, storeId: string) {
+  const sb = tenantStore(req);
+  const { data, error } = await sb.from("store_subscriptions").select("plan,status").eq("store_id", storeId).maybeSingle();
+  if (error) throw error;
+  return data?.status === "active" ? (data.plan || "free") : "free";
+}
+function productLimit(plan: string) {
+  return plan === "free" ? 10 : plan === "starter" ? 100 : Infinity;
+}
+
 function productOut(p: any) {
   return {
     _id: p.id, id: p.id, name: p.name, slug: p.id, sku: "",
@@ -255,6 +265,13 @@ app.post("/api/products", requireUser, async (req: AuthRequest, res: Response) =
   if (!p.success) return res.status(400).json({ message: "Invalid product" });
   try {
     const store = await getOwnedStore(req); if (!store) return res.status(404).json({ message: "Store not found" });
+    const plan = await getStorePlan(req, store.id);
+    const limit = productLimit(plan);
+    if (limit !== Infinity) {
+      const count = await tenantStore(req).from("items").select("id", { count: "exact", head: true }).eq("store_id", store.id);
+      if (count.error) throw count.error;
+      if ((count.count || 0) >= limit) return res.status(402).json({ message: `Your ${plan.toUpperCase()} plan allows up to ${limit} products. Upgrade your plan to add more.` , code: "PLAN_LIMIT", plan, limit });
+    }
     const { data, error } = await tenantStore(req).from("items").insert({
       store_id: store.id, name: p.data.name, description: p.data.description || "",
       price: p.data.price, compare_at_price: p.data.salePrice ?? null, stock: p.data.stock,
