@@ -54,5 +54,3 @@ export default function Dashboard(){
   </section>
  </div>
 }
-function TagIcon(){return <span>⌁</span>}
-function HistoryIcon(){return <span>◷</span>}
