@@ -457,30 +457,39 @@ app.post("/api/payments/cashfree/webhook", async(req,res)=>{
     const raw=(req as any).rawBody as Buffer;
     if(!signature||!timestamp||!raw)return res.status(400).json({message:"Invalid webhook payload"});
     const expected=crypto.createHmac("sha256",secret).update(timestamp+raw.toString("utf8")).digest("base64");
-    const sigBuf=Buffer.from(signature);const expectedBuf=Buffer.from(expected);if(sigBuf.length!==expectedBuf.length||!crypto.timingSafeEqual(sigBuf,expectedBuf))return res.status(401).json({message:"Invalid webhook signature"});
+    const sigBuf=Buffer.from(signature),expectedBuf=Buffer.from(expected);
+    if(sigBuf.length!==expectedBuf.length||!crypto.timingSafeEqual(sigBuf,expectedBuf))return res.status(401).json({message:"Invalid webhook signature"});
     const payload=req.body||{};
-    const orderId=payload?.data?.order?.order_id||payload?.data?.order?.order_id||payload?.order?.order_id;
+    const orderId=payload?.data?.order?.order_id||payload?.order?.order_id;
     const paymentStatus=String(payload?.data?.payment?.payment_status||payload?.data?.order?.order_status||payload?.event||"").toUpperCase();
     if(!orderId)return res.json({ok:true});
-    const plan=orderId.includes("_pro_")?"pro":orderId.includes("_starter_")?"starter":null;
-    const storeKey=orderId.match(/^hep_([a-f0-9]{16})_/i)?.[1];
-    if(orderId.startsWith("hepord_")){
-      const orderKey=orderId.replace(/^hepord_/,"").split("_")[0];
+    if(String(orderId).startsWith("hepord_")){
+      const orderKey=String(orderId).replace(/^hepord_/,"").split("_")[0];
       const admin=adminSupabase();
-      const found=await admin.from("orders").select("id,store_id,customer_phone").ilike("id",orderKey+"%").limit(1);
+      const found=await admin.from("orders").select("id,store_id,customer_phone,payment_status").ilike("id",orderKey+"%").limit(1);
       const order=found.data?.[0];
       if(!order)return res.json({ok:true});
       if(["SUCCESS","PAID","COMPLETED"].some(x=>paymentStatus.includes(x))){
-        const marked=await admin.from("orders").update({payment_status:"paid"}).eq("id",order.id).eq("payment_status","pending").select("id").maybeSingle();if(marked.error)throw marked.error;if(marked.data){const stock=await admin.rpc("adjust_order_stock",{p_order_id:order.id});if(stock.error){await admin.from("orders").update({payment_status:"failed",status:"cancelled"}).eq("id",order.id);return res.status(409).json({message:"Payment received but stock could not be reserved"});}
-        if(order.customer_phone) await logNotification(order.store_id,order.id,"payment_received",order.customer_phone,"Payment received for order HP-"+order.id.slice(0,8).toUpperCase());
+        const marked=await admin.from("orders").update({payment_status:"paid"}).eq("id",order.id).eq("payment_status","pending").select("id").maybeSingle();
+        if(marked.error)throw marked.error;
+        if(marked.data){
+          const stock=await admin.rpc("adjust_order_stock",{p_order_id:order.id});
+          if(stock.error){
+            await admin.from("orders").update({payment_status:"failed",status:"cancelled"}).eq("id",order.id);
+            return res.status(409).json({message:"Payment received but stock could not be reserved"});
+          }
+          if(order.customer_phone)await logNotification(order.store_id,order.id,"payment_received",order.customer_phone,"Payment received for order HP-"+order.id.slice(0,8).toUpperCase());
+        }
       }else if(["FAILED","CANCELLED","USER_DROPPED"].some(x=>paymentStatus.includes(x))){
-        await admin.from("orders").update({payment_status:"failed"}).eq("id",order.id);
+        await admin.from("orders").update({payment_status:"failed"}).eq("id",order.id).eq("payment_status","pending");
       }
       return res.json({ok:true});
     }
+    const plan=String(orderId).includes("_pro_")?"pro":String(orderId).includes("_starter_")?"starter":null;
+    const storeKey=String(orderId).match(/^hep_([a-f0-9]{16})_/i)?.[1];
     if(!plan||!storeKey)return res.json({ok:true});
     const admin=adminSupabase();
-    const stores=await admin.from("stores").select("id").ilike("id",`${storeKey}%`).limit(1);
+    const stores=await admin.from("stores").select("id").ilike("id",storeKey+"%").limit(1);
     const store=stores.data?.[0];
     if(!store)return res.json({ok:true});
     if(["SUCCESS","PAID","COMPLETED"].some(x=>paymentStatus.includes(x))){
