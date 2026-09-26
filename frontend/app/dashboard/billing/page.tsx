@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Script from "next/script";
 import { useSearchParams } from "next/navigation";
 import { api } from "../../../lib/api";
@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-export default function Billing(){
+function BillingContent(){
   const searchParams=useSearchParams();
   const [sub,setSub]=useState<any>(null);
   const [busy,setBusy]=useState("");
@@ -108,4 +108,9 @@ export default function Billing(){
       <div className="notice"><b>Plan access is enforced automatically.</b> Free, Starter and Pro limits are checked by the backend, so upgrades take effect across the store after payment confirmation.</div><div className="notice">Secure payments are processed by Cashfree. Your paid plan becomes active after Cashfree confirms the payment through the signed webhook.</div>
     </main>
   </>;
+}
+
+
+export default function Billing(){
+  return <Suspense fallback={<main className="dashboard-content"><div className="panel">Loading billing…</div></main>}><BillingContent /></Suspense>;
 }
