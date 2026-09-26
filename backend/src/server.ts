@@ -358,7 +358,11 @@ app.patch("/api/orders/:id/status", requireUser, async (req: AuthRequest, res: R
   if (!p.success) return res.status(400).json({ message: "Invalid order status" });
   try {
     const store = await getOwnedStore(req); const { data, error } = await tenantStore(req).from("orders").update({ status: p.data.status }).eq("id", req.params.id).eq("store_id", store.id).select("*").single();
-    if (error) throw error; res.json(orderOut(data));
+    if (error) throw error;
+    const eventByStatus:any = { shipped:"order_shipped", delivered:"order_delivered", cancelled:"order_cancelled", confirmed:"order_confirmed", processing:"order_processing" };
+    const event = eventByStatus[p.data.status];
+    if (event && data.customer_phone) await logNotification(store.id, data.id, event, data.customer_phone, "Order HP-"+data.id.slice(0,8).toUpperCase()+" status: "+p.data.status);
+    res.json(orderOut(data));
   } catch (e: any) { res.status(500).json({ message: e.message }); }
 });
 
