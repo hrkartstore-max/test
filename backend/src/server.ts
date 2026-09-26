@@ -269,7 +269,24 @@ app.put("/api/store", requireUser, async (req: AuthRequest, res) => {
   } catch (e: any) { res.status(500).json({ message: e.message }); }
 });
 
-async function logNotification(storeId:string,orderId:string|null,event:string,recipient:string|null,message:string){try{const sb=adminSupabase();await sb.from("notification_logs").insert({store_id:storeId,order_id:orderId,channel:"whatsapp",event,recipient,message,status:"pending"});}catch(e){console.error("notification log failed",e)}}
+async function logNotification(storeId:string,orderId:string|null,event:string,recipient:string|null,message:string){
+  try{
+    const sb=adminSupabase();
+    const row=await sb.from("notification_logs").insert({store_id:storeId,order_id:orderId,channel:"whatsapp",event,recipient,message,status:"pending"}).select("id").single();
+    const logId=row.data?.id;
+    const token=process.env.WHATSAPP_ACCESS_TOKEN;
+    const phoneNumberId=process.env.WHATSAPP_PHONE_NUMBER_ID;
+    if(!token||!phoneNumberId||!recipient||!logId)return;
+    const to=recipient.replace(/[^0-9]/g,"");
+    const response=await fetch("https://graph.facebook.com/v23.0/"+phoneNumberId+"/messages",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({messaging_product:"whatsapp",to,type:"text",text:{body:message}})});
+    const data=await response.json();
+    if(response.ok){
+      await sb.from("notification_logs").update({status:"sent",provider_message_id:data?.messages?.[0]?.id||null}).eq("id",logId);
+    }else{
+      await sb.from("notification_logs").update({status:"failed",error:String(data?.error?.message||"WhatsApp API request failed")}).eq("id",logId);
+    }
+  }catch(e:any){console.error("notification send failed",e)}
+}
 
 app.get("/api/notifications", async (req:any,res:any)=>{try{const sb=tenantStore(req);const {data,error}=await sb.from("notification_logs").select("id,order_id,channel,event,recipient,message,status,provider_message_id,error,created_at").order("created_at",{ascending:false}).limit(100);if(error)throw error;res.json(data||[])}catch(e:any){res.status(500).json({message:e.message})}});
 
