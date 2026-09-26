@@ -2,14 +2,14 @@
 import Link from "next/link";
 import {useEffect,useMemo,useState} from "react";
 import {api} from "../../lib/api";
-import {Rocket as RocketIcon,Search as SearchIcon,Image as ImageIcon,LayoutTemplate,Globe,CreditCard,BarChart3,Box,LayoutDashboard,Package,Settings,ShoppingBag,Users,ChevronRight} from "lucide-react";
+import {Rocket as RocketIcon,Search as SearchIcon,Image as ImageIcon,LayoutTemplate,Globe,CreditCard,BarChart3,Box,LayoutDashboard,Package,Settings,ShoppingBag,Users,ChevronRight,Tag as TagIcon,History as HistoryIcon,Bell} from "lucide-react";
 
 const nav:any[]=[
  ["Dashboard",LayoutDashboard,"/dashboard"],["Products",Package,"/dashboard/products"],["Orders",ShoppingBag,"/dashboard/orders"],
  ["Customers",Users,"/dashboard/customers"],["Pages",LayoutTemplate,"/dashboard/pages"],["Media",ImageIcon,"/dashboard/media"],
  ["Publish",RocketIcon,"/dashboard/publish"],["SEO",SearchIcon,"/dashboard/seo"],["Website",LayoutTemplate,"/dashboard/website"],
  ["Domains",Globe,"/dashboard/domains"],["Billing",CreditCard,"/dashboard/billing"],["Coupons",TagIcon,"/dashboard/coupons"],
- ["Staff",Users,"/dashboard/staff"],["Audit logs",HistoryIcon,"/dashboard/audit"],["Inventory",Box,"/dashboard/products"],
+ ["Staff",Users,"/dashboard/staff"],["Notifications",Bell,"/dashboard/notifications"],["Audit logs",HistoryIcon,"/dashboard/audit"],["Inventory",Box,"/dashboard/inventory"],
  ["Analytics",BarChart3,"#"],["Settings",Settings,"#"]
 ];
 
