@@ -447,6 +447,20 @@ app.post("/api/payments/cashfree/webhook", async(req,res)=>{
     if(!orderId)return res.json({ok:true});
     const plan=orderId.includes("_pro_")?"pro":orderId.includes("_starter_")?"starter":null;
     const storeKey=orderId.match(/^hep_([a-f0-9]{16})_/i)?.[1];
+    if(orderId.startsWith("hepord_")){
+      const orderKey=orderId.replace(/^hepord_/,"").split("_")[0];
+      const admin=adminSupabase();
+      const found=await admin.from("orders").select("id,store_id,customer_phone").ilike("id",orderKey+"%").limit(1);
+      const order=found.data?.[0];
+      if(!order)return res.json({ok:true});
+      if(["SUCCESS","PAID","COMPLETED"].some(x=>paymentStatus.includes(x))){
+        await admin.from("orders").update({payment_status:"paid"}).eq("id",order.id);
+        if(order.customer_phone) await logNotification(order.store_id,order.id,"payment_received",order.customer_phone,"Payment received for order HP-"+order.id.slice(0,8).toUpperCase());
+      }else if(["FAILED","CANCELLED","USER_DROPPED"].some(x=>paymentStatus.includes(x))){
+        await admin.from("orders").update({payment_status:"failed"}).eq("id",order.id);
+      }
+      return res.json({ok:true});
+    }
     if(!plan||!storeKey)return res.json({ok:true});
     const admin=adminSupabase();
     const stores=await admin.from("stores").select("id").ilike("id",`${storeKey}%`).limit(1);
