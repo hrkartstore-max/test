@@ -110,7 +110,7 @@ export default function Storefront() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             customer,
-            items: [...counts].map(([productId, quantity]) => ({
+            items: Array.from(counts).map(([productId, quantity]) => ({
               productId,
               quantity,
             })),
@@ -169,7 +169,7 @@ export default function Storefront() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             customer,
-            items: [...counts].map(([productId, quantity]) => ({
+            items: Array.from(counts).map(([productId, quantity]) => ({
               productId,
               quantity,
             })),
