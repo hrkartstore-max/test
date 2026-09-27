@@ -37,7 +37,7 @@ export async function POST(req:NextRequest){
     };
     const create=await fetch('https://apiv2.shiprocket.in/v1/external/orders/create/adhoc',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${loginData.token}`},body:JSON.stringify(payload)});
     const created=await create.json();
-    if(!create.ok)return NextResponse.json({error:'Shiprocket order creation failed',details:created},{status:502});
+    if(!create.ok)return NextResponse.json({error:'Shiprocket order creation failed'},{status:502});
     let awb:any=null;
     if(created.shipment_id){
       const awbRes=await fetch('https://apiv2.shiprocket.in/v1/external/courier/assign/awb',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${loginData.token}`},body:JSON.stringify({shipment_id:created.shipment_id,...(order.courier_company_id?{courier_id:Number(order.courier_company_id)}:{})})});
