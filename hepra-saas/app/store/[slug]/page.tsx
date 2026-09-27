@@ -37,6 +37,7 @@ export default function Storefront({params}:{params:Promise<{slug:string}>}){
   async function lookupPincode(pin:string){if(pin.replace(/\D/g,'').length!==6)return;try{const r=await fetch('https://api.postalpincode.in/pincode/'+pin.replace(/\D/g,''));const d=await r.json();const po=d?.[0]?.PostOffice?.[0];if(po)setCustomer(v=>({...v,city:po.District||v.city,state:po.State||v.state}));}catch{}}
   async function applyCoupon(){if(!store||!coupon.trim())return;setCouponLoading(true);setCouponMessage('');const r=await fetch('/api/discounts/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({store_id:store.id,code:coupon,subtotal,phone:customer.phone})});const d=await r.json();if(r.ok){setDiscount(Number(d.discount||0));setCouponMessage('Coupon applied');}else{setDiscount(0);setCouponMessage(d.error||'Invalid coupon')}setCouponLoading(false)}
   async function startOnlinePayment(orderId:string){
+    sessionStorage.setItem('hepra_payment_phone_'+orderId,customer.phone);
     const r=await fetch('/api/payments/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({order_id:orderId,phone:customer.phone,provider:store?.payment_provider||'cashfree'})});
     const d=await r.json(); if(!r.ok){setError(d.error||'Unable to start payment');return;}
     if(d.provider==='cashfree'){
