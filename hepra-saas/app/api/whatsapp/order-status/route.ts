@@ -38,7 +38,7 @@ export async function POST(req:NextRequest){
   const data=await response.json();
   if(!response.ok){
    await supa.from('whatsapp_notification_logs').update({state:'failed',error_message:data?.error?.message||'WhatsApp message failed',updated_at:new Date().toISOString()}).eq('id',log.id);
-   return NextResponse.json({error:data?.error?.message||'WhatsApp message failed',details:data?.error?.code||null},{status:502});
+   return NextResponse.json({error:'WhatsApp message failed'},{status:502});
   }
   const messageId=data?.messages?.[0]?.id||null;
   await supa.from('whatsapp_notification_logs').update({state:'sent',provider_message_id:messageId,updated_at:new Date().toISOString()}).eq('id',log.id);
