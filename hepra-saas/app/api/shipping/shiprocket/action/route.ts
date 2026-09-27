@@ -36,7 +36,7 @@ export async function POST(req:NextRequest){
    const d=await r.json();
    if(!r.ok)return NextResponse.json({error:'Pickup request failed'},{status:502});
    await userClient.from('orders').update({pickup_status:'requested',shipping_status:'pickup requested'}).eq('id',o.id);
-   return NextResponse.json({ok:true,data:d});
+   return NextResponse.json({ok:true});
   }
 
   if(action==='label'){
