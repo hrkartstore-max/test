@@ -19,9 +19,10 @@ export async function POST(req:NextRequest){
     if(!store)return NextResponse.json({error:'Store access denied'},{status:403});
     if(!store.shipping_enabled)return NextResponse.json({error:'Shiprocket is disabled for this store'},{status:400});
     if(!process.env.SHIPROCKET_EMAIL||!process.env.SHIPROCKET_PASSWORD||!process.env.SHIPROCKET_PICKUP_LOCATION)return NextResponse.json({error:'Shiprocket server configuration is incomplete'},{status:500});
+    if(order.shiprocket_order_id||order.shiprocket_shipment_id){return NextResponse.json({error:'Shiprocket shipment already exists for this order',shiprocket_order_id:order.shiprocket_order_id||null,shipment_id:order.shiprocket_shipment_id||null,awb_code:order.awb_code||null,courier_name:order.courier_name||null,shipping_status:order.shipping_status||null},{status:409});}
     const login=await fetch('https://apiv2.shiprocket.in/v1/external/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:process.env.SHIPROCKET_EMAIL,password:process.env.SHIPROCKET_PASSWORD})});
     const loginData=await login.json();
-    if(!login.ok||!loginData.token)return NextResponse.json({error:'Shiprocket authentication failed',details:loginData},{status:502});
+    if(!login.ok||!loginData.token)return NextResponse.json({error:'Shiprocket authentication failed'},{status:502});
     const fullName=String(order.customer_name||'Customer').trim().split(/\s+/);const first=fullName.shift()||'Customer';const last=fullName.join(' ');
     const payload={
       order_id:String(order.id).slice(0,20),order_date:new Date(order.created_at||Date.now()).toISOString().slice(0,16).replace('T',' '),
@@ -44,7 +45,7 @@ export async function POST(req:NextRequest){
     }
     const awbCode=awb?.response?.data?.awb_code||awb?.awb_code||null;const courier=awb?.response?.data?.courier_name||awb?.courier_name||null;
     const {error:ue}=await db.from('orders').update({shiprocket_order_id:String(created.order_id||''),shiprocket_shipment_id:String(created.shipment_id||''),awb_code:awbCode,courier_name:courier,shipping_status:awbCode?'AWB assigned':'created'}).eq('id',order.id);
-    if(ue)return NextResponse.json({error:ue.message,shiprocket:created,awb},{status:500});
+    if(ue)return NextResponse.json({error:'Unable to save shipment information'},{status:500});
     return NextResponse.json({ok:true,shiprocket_order_id:created.order_id,shipment_id:created.shipment_id,awb_code:awbCode,courier_name:courier});
   }catch(e:any){return NextResponse.json({error:e?.message||'Shipping integration error'},{status:500});}
 }
