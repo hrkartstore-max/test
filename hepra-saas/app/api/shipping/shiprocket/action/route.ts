@@ -53,6 +53,6 @@ export async function POST(req:NextRequest){
   if(!r.ok)return NextResponse.json({error:'Tracking request failed'},{status:502});
   const track=d?.tracking_data?.shipment_track?.[0]||{};
   await userClient.from('orders').update({shipping_status:track?.current_status||o.shipping_status||'tracking available'}).eq('id',o.id);
-  return NextResponse.json({ok:true,status:track?.current_status||null,tracking:d});
+  return NextResponse.json({ok:true,status:track?.current_status||null,tracking:{current_status:track?.current_status||null,awb_code:track?.awb_code||o.awb_code||null,courier_name:track?.courier_name||o.courier_name||null}});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Shiprocket action failed'},{status:500})}
 }
